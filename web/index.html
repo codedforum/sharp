@@ -251,6 +251,11 @@ section{scroll-margin-top:70px}
 /* modal */
 .scrim{position:fixed;inset:0;z-index:60;background:rgba(3,3,5,.72);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .24s}
 .scrim.on{opacity:1;pointer-events:auto}
+.vmodal{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(2,3,6,.9);backdrop-filter:blur(6px)}
+.vmodal.on{display:flex}
+.vmodal video{width:100%;max-width:960px;max-height:86vh;border-radius:12px;border:1px solid var(--bd2);box-shadow:0 24px 80px rgba(0,0,0,.7);background:#000}
+.vclose{position:absolute;top:16px;right:18px;width:40px;height:40px;border-radius:8px;background:var(--card);border:1px solid var(--bd2);color:var(--txt);display:grid;place-items:center;cursor:pointer}
+.vclose:hover{background:var(--raise)}.vclose svg{width:18px;height:18px}
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:61;background:var(--panel);border:1px solid var(--bd2);border-bottom:none;
   border-radius:14px 14px 0 0;padding:8px 18px calc(26px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto;
   transform:translateY(101%);opacity:0;visibility:hidden;transition:transform .32s var(--ease),opacity .22s,visibility .22s;box-shadow:0 -18px 50px rgba(0,0,0,.6)}
@@ -431,6 +436,7 @@ section{scroll-margin-top:70px}
 </div>
 
 <div class="scrim" id="scrim"></div>
+<div class="vmodal" id="vmodal"><button class="vclose" id="vClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button><video id="vplayer" controls playsinline preload="none" poster="/og.png"><source src="/sharp-demo.mp4?v=2" type="video/mp4"></video></div>
 <div class="sheet" id="sheet"><div class="grab"></div><button class="sclose" id="sClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button><div id="sBody"></div></div>
 
 <div class="tour" id="tour"><div class="spot" id="spot"></div>
@@ -573,6 +579,7 @@ function renderHeroM(){const el=$('#heroM');if(!el)return;const s=(S.board&&S.bo
 function openSheet(h){$('#sBody').innerHTML=h;$('#scrim').classList.add('on');$('#sheet').classList.add('on');}
 function closeSheet(){$('#scrim').classList.remove('on');$('#sheet').classList.remove('on');}
 $('#scrim').onclick=closeSheet;$('#sClose').onclick=closeSheet;addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet();});
+(function(){var vm=document.getElementById('vmodal'),vp=document.getElementById('vplayer');function openV(){if(!vm)return;vm.classList.add('on');try{vp.currentTime=0;vp.play();}catch(e){}}function closeV(){if(!vm)return;vm.classList.remove('on');try{vp.pause();}catch(e){}}document.querySelectorAll('.btn.play').forEach(function(b){b.addEventListener('click',openV);});var vc=document.getElementById('vClose');if(vc)vc.addEventListener('click',closeV);if(vm)vm.addEventListener('click',function(e){if(e.target===vm)closeV();});addEventListener('keydown',function(e){if(e.key==='Escape')closeV();});})();
 function facRow(n,v){return`<div class="fac"><div class="fl"><span class="fn">${n}</span><b>${Math.round(v)}</b></div><div class="bar"><i style="width:${Math.max(3,Math.min(100,v))}%"></i></div></div>`;}
 function openFx(f){const fc=f.factors||{},st=f.stats||{},mk=f.market||{},im=mk.implied||{};
   const nm={direction:'Direction',velocity:'Velocity',steam:'Steam · purity',magnitude:'Magnitude',conviction_snr:'Signal / noise'};
