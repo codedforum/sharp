@@ -510,8 +510,8 @@ function stateBadge(f){if(f.state==='live')return`<span class="live"><i></i>LIVE
 function fxCard(f){const im=(f.market&&f.market.implied)||{},h=im.home||0,d=im.draw||0,a=im.away||0,sm=(h+d+a)||1;
   const w=x=>Math.max(3,x/sm*100),v=f.verdict||'WATCH',sc=Math.round(f.score||50),steam=v==='STEAM';
   const el=document.createElement('div');el.className='fx'+(steam?' steam':'');
-  el.innerHTML=`<div class="fxh"><span class="nm">${f.name||f.fixtureId}</span>${stateBadge(f)}<span class="chip ${v}">${v}</span></div>
-    <div class="fxb"><div class="conv ${steam?'hi':''}"><b>${sc}</b><span>conviction</span></div>${spark(f.spark,96,34,steam?'#6ef7a0':'#46d6e6')}${f.side?`<div class="lean">→ <b>${f.side}</b></div>`:''}</div>
+  el.innerHTML=`<div class="fxh"><span class="nm">${esc(f.name||f.fixtureId)}</span>${stateBadge(f)}<span class="chip ${v}">${v}</span></div>
+    <div class="fxb"><div class="conv ${steam?'hi':''}"><b>${sc}</b><span>conviction</span></div>${spark(f.spark,96,34,steam?'#6ef7a0':'#46d6e6')}${f.side?`<div class="lean">→ <b>${esc(f.side)}</b></div>`:''}</div>
     <div class="mkt"><i class="h" style="flex-basis:${w(h)}%"></i><i class="d" style="flex-basis:${w(d)}%"></i><i class="a" style="flex-basis:${w(a)}%"></i></div>
     <div class="mktl"><span>H <b>${pct(h)}</b></span><span>D <b>${pct(d)}</b></span><span>A <b>${pct(a)}</b></span><span class="ov">vig ${vig(f.market)}%</span></div>`;
   el.onclick=()=>openFx(f);return el;}
@@ -522,9 +522,9 @@ function callCard(c,st){const clv=typeof c.clv_pp==='number'?c.clv_pp:null,r=st?
   const schip=st?(c.win?'LEAN':'DRIFT'):'STEAM';
   const pnlTag=st&&typeof c.pnl==='number'?`<span class="clv ${c.pnl>=0?'pos':'neg'}">${c.pnl>=0?'+':''}${c.pnl}u</span>`:'';
   const cc=c.cross_confirmed?'<span class="cc" title="Asian-handicap market agrees with the 1X2 steam">✓ 2-mkt</span>':'';
-  el.innerHTML=`<div class="ch"><span class="chip ${schip}">${slabel}</span><span class="nm">${c.name}</span>${cc}<span class="ag">${ago(st?c.settled_at:c.opened_at)} ago</span></div>
-    ${st?'':`<div class="why">${c.rationale||''}</div>`}
-    <div class="cf">${pnlTag||`<span class="clv ${cls}">${txt} CLV</span>`}<span class="mta">${c.side}${c.final_score?' · <b>'+esc(c.final_score)+'</b>':''}${st&&c.stake?' · '+c.stake+'u':''} · conv <b>${Math.round(c.score||0)}</b></span>${ancLink(c)}</div>`;
+  el.innerHTML=`<div class="ch"><span class="chip ${schip}">${slabel}</span><span class="nm">${esc(c.name)}</span>${cc}<span class="ag">${ago(st?c.settled_at:c.opened_at)} ago</span></div>
+    ${st?'':`<div class="why">${esc(c.rationale||'')}</div>`}
+    <div class="cf">${pnlTag||`<span class="clv ${cls}">${txt} CLV</span>`}<span class="mta">${esc(c.side)}${c.final_score?' · <b>'+esc(c.final_score)+'</b>':''}${st&&c.stake?' · '+c.stake+'u':''} · conv <b>${Math.round(c.score||0)}</b></span>${ancLink(c)}</div>`;
   el.onclick=()=>openCall(c,st);return el;}
 function ancLink(c){const a=c.anchor;if(!a||!a.sig)return'';const nt=a.cluster&&a.cluster!=='mainnet'?'?cluster='+a.cluster:'';
   return`<a class="anc" href="https://explorer.solana.com/tx/${a.sig}${nt}" target="_blank" rel="noopener" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2"/><path d="M12 7v12M6 12H5c0 4 3 6 7 6s7-2 7-6h-1"/></svg>${a.sig.slice(0,4)}…${a.sig.slice(-4)}</a>`;}
@@ -576,7 +576,7 @@ $('#scrim').onclick=closeSheet;$('#sClose').onclick=closeSheet;addEventListener(
 function facRow(n,v){return`<div class="fac"><div class="fl"><span class="fn">${n}</span><b>${Math.round(v)}</b></div><div class="bar"><i style="width:${Math.max(3,Math.min(100,v))}%"></i></div></div>`;}
 function openFx(f){const fc=f.factors||{},st=f.stats||{},mk=f.market||{},im=mk.implied||{};
   const nm={direction:'Direction',velocity:'Velocity',steam:'Steam · purity',magnitude:'Magnitude',conviction_snr:'Signal / noise'};
-  openSheet(`<h3>${f.name}</h3><div class="ssub">${f.verdict} · leaning <span style="color:var(--grn)">${f.side||'·'}</span> · conviction ${Math.round(f.score||0)}/100</div>
+  openSheet(`<h3>${esc(f.name)}</h3><div class="ssub">${f.verdict} · leaning <span style="color:var(--grn)">${esc(f.side||'·')}</span> · conviction ${Math.round(f.score||0)}/100</div>
     <div class="shSpk">${spark(f.spark,320,74,f.verdict==='STEAM'?'#6ef7a0':'#46d6e6').replace('class="spk"','style="width:100%;height:74px"')}</div>
     <div class="lbl" style="margin:8px 0">Signal factors</div>${Object.keys(nm).map(k=>fc[k]!=null?facRow(nm[k],fc[k]):'').join('')}
     <div style="margin-top:14px">
@@ -586,10 +586,10 @@ function openFx(f){const fc=f.factors||{},st=f.stats||{},mk=f.market||{},im=mk.i
       <div class="kv"><span class="k">Velocity</span><span class="v">${st.velocity_bp!=null?st.velocity_bp+' bp':'·'}</span></div>
     </div>`);}
 function openCall(c,st){const r=st?(c.result_clv_pp??c.clv_pp):c.clv_pp;
-  openSheet(`<h3>${c.name}</h3><div class="ssub">STEAM · ${c.side} · opened ${ago(c.opened_at)} ago${st?' · settled':''}</div>
-    <div class="step" style="padding:14px;margin-bottom:14px"><p style="font-family:var(--mono);font-size:12.5px;line-height:1.6;color:var(--mut)">${c.rationale||''}</p></div>
+  openSheet(`<h3>${esc(c.name)}</h3><div class="ssub">STEAM · ${esc(c.side)} · opened ${ago(c.opened_at)} ago${st?' · settled':''}</div>
+    <div class="step" style="padding:14px;margin-bottom:14px"><p style="font-family:var(--mono);font-size:12.5px;line-height:1.6;color:var(--mut)">${esc(c.rationale||'')}</p></div>
     <div class="kv"><span class="k">Conviction</span><span class="v">${Math.round(c.score||0)}/100</span></div>
-    ${c.bet?`<div class="kv"><span class="k">Position</span><span class="v">${c.bet.stake}u @ ${c.bet.price} on ${c.side}</span></div>`:''}
+    ${c.bet?`<div class="kv"><span class="k">Position</span><span class="v">${c.bet.stake}u @ ${c.bet.price} on ${esc(c.side)}</span></div>`:''}
     ${st&&typeof c.pnl==='number'?`<div class="kv"><span class="k">Result P&L</span><span class="v" style="color:${c.pnl>=0?'var(--grn)':'var(--neg)'}">${c.pnl>=0?'+':''}${c.pnl}u${c.final_score?' · '+esc(c.final_score):''}</span></div>`:''}
     <div class="kv"><span class="k">Implied at call</span><span class="v">${c.implied_at_call!=null?pct(c.implied_at_call):'·'}</span></div>
     <div class="kv"><span class="k">Implied now</span><span class="v">${c.implied_now!=null?pct(c.implied_now):'·'}</span></div>
