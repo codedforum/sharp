@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sharp · Technical Documentation</title>
+<meta name="description" content="Sharp - autonomous sharp-money trading agent on Solana, built on TxLINE. Technical documentation.">
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#09090b;--panel:#0e0f13;--card:#131419;--bd:#1e2027;--bd2:#272a33;--txt:#e9eaee;--mut:#9598a3;--faint:#5b5e69;--grn:#6ef7a0;--cyan:#46d6e6;--red:#ff6b6b;--mono:'JetBrains Mono',ui-monospace,monospace}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:Inter,system-ui,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body:before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:
+  radial-gradient(680px 400px at 78% -6%,rgba(110,247,160,.07),transparent 70%),
+  radial-gradient(600px 380px at 12% 4%,rgba(70,214,230,.05),transparent 70%)}
+.wrap{position:relative;z-index:1;max-width:780px;margin:0 auto;padding:26px 20px 90px}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:30px}
+.brand{font-family:var(--mono);font-weight:700;font-size:16px;text-decoration:none;color:var(--txt)}
+.brand .pr{color:var(--grn);margin-right:2px}
+.back{font-family:var(--mono);font-size:12.5px;color:var(--mut);text-decoration:none;border:1px solid var(--bd2);padding:7px 12px;border-radius:8px;transition:.15s}
+.back:hover{color:var(--txt);background:var(--card)}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:10px}
+h1{font-size:32px;line-height:1.1;letter-spacing:-.02em;margin:0 0 8px;text-wrap:balance}
+h1 .g{color:var(--grn)}
+.sub{color:var(--mut);font-family:var(--mono);font-size:13px;margin-bottom:22px}
+.sub a{color:var(--cyan);text-decoration:none}
+h2{font-size:15px;font-family:var(--mono);letter-spacing:.02em;margin:40px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--bd);color:var(--grn);display:flex;align-items:center;gap:9px}
+h2 .hn{color:var(--faint);font-size:12px;font-weight:400}
+p{margin:0 0 14px;color:#d3d5db}
+ul{margin:0 0 14px;padding-left:0;list-style:none}
+li{position:relative;padding-left:20px;margin-bottom:9px;color:#d3d5db}
+li:before{content:'›';position:absolute;left:2px;color:var(--grn);font-family:var(--mono)}
+b{color:var(--txt);font-weight:600}
+code{font-family:var(--mono);font-size:12.5px;background:var(--card);border:1px solid var(--bd);border-radius:5px;padding:1px 6px;color:var(--cyan)}
+pre{font-family:var(--mono);font-size:12.5px;background:var(--panel);border:1px solid var(--bd);border-radius:10px;padding:16px;overflow-x:auto;color:#cfd2da;line-height:1.7}
+pre .c{color:var(--faint)}
+.card{background:var(--panel);border:1px solid var(--bd);border-radius:12px;padding:4px 20px 8px;margin:14px 0}
+
+/* hero live viz */
+.hviz{position:relative;background:var(--panel);border:1px solid var(--bd);border-radius:14px;padding:14px 16px 12px;margin:6px 0 8px;overflow:hidden}
+.hviz .top{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:11.5px;color:var(--mut);margin-bottom:6px}
+.hviz .live{display:inline-flex;align-items:center;gap:6px;color:var(--grn)}
+.hviz .live i{width:7px;height:7px;border-radius:50%;background:var(--grn);box-shadow:0 0 0 0 rgba(110,247,160,.6);animation:pp 1.8s infinite}
+@keyframes pp{0%{box-shadow:0 0 0 0 rgba(110,247,160,.5)}70%{box-shadow:0 0 0 7px rgba(110,247,160,0)}100%{box-shadow:0 0 0 0 rgba(110,247,160,0)}}
+.hviz canvas{display:block;width:100%;height:132px}
+.hviz .read{position:absolute;left:16px;bottom:12px;font-family:var(--mono);pointer-events:none}
+.hviz .read .big{font-size:26px;font-weight:700;color:var(--txt);letter-spacing:-.01em}
+.hviz .read .lab{font-size:10.5px;color:var(--faint);letter-spacing:.1em;text-transform:uppercase}
+.hviz .flag{position:absolute;top:34px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--bg);background:var(--grn);padding:3px 8px;border-radius:5px;opacity:0;transform:translateY(-4px);transition:opacity .3s,transform .3s;white-space:nowrap}
+.hviz .flag.on{opacity:1;transform:translateY(0)}
+
+/* pipeline */
+.loop{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:6px 0 4px}
+@media(max-width:560px){.loop{grid-template-columns:repeat(2,1fr)}}
+.node{position:relative;background:var(--panel);border:1px solid var(--bd);border-radius:11px;padding:13px 12px;opacity:0;transform:translateY(10px);transition:opacity .5s,transform .5s,border-color .3s}
+.loop.in .node{opacity:1;transform:none}
+.node .ic{width:26px;height:26px;color:var(--grn);margin-bottom:8px}
+.node .ic svg{width:26px;height:26px}
+.node h4{margin:0 0 3px;font-size:13px;letter-spacing:-.01em}
+.node p{margin:0;font-size:11.5px;line-height:1.45;color:var(--mut)}
+.node .st{position:absolute;top:10px;right:11px;font-family:var(--mono);font-size:10px;color:var(--faint)}
+.node.hot{border-color:rgba(110,247,160,.5);box-shadow:0 0 22px rgba(110,247,160,.09)}
+.loopnote{font-family:var(--mono);font-size:11.5px;color:var(--faint);text-align:center;margin-top:12px}
+.loopnote b{color:var(--cyan)}
+
+/* signal bars */
+.facs{background:var(--panel);border:1px solid var(--bd);border-radius:12px;padding:18px 18px 8px;margin:10px 0}
+.fac{margin-bottom:15px}
+.fac .fh{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:12.5px;margin-bottom:6px}
+.fac .fh .nm{color:var(--txt)}
+.fac .fh .wt{color:var(--grn);font-weight:600}
+.fac .track{height:8px;border-radius:5px;background:var(--card);border:1px solid var(--bd);overflow:hidden}
+.fac .fill{height:100%;width:0;border-radius:5px;background:linear-gradient(90deg,var(--cyan),var(--grn));transition:width 1.1s cubic-bezier(.2,.8,.2,1)}
+.facs.in .fill{width:var(--w)}
+.facsub{font-family:var(--mono);font-size:11.5px;color:var(--faint);margin:4px 2px 4px}
+
+/* merkle verify */
+.mk{display:grid;grid-template-columns:1fr;gap:14px;align-items:center;background:var(--panel);border:1px solid var(--bd);border-radius:12px;padding:18px;margin:10px 0}
+@media(min-width:620px){.mk{grid-template-columns:auto 1fr}}
+.mk svg{width:230px;max-width:100%;height:auto}
+.mk .path{stroke:var(--grn);stroke-width:2;fill:none;stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 1.4s ease}
+.mk.in .path{stroke-dashoffset:0}
+.mk .dim{stroke:var(--bd2);stroke-width:1.5;fill:none}
+.mk .leaf{fill:var(--card);stroke:var(--grn);stroke-width:1.5}
+.mk .pn{fill:var(--card);stroke:var(--grn);stroke-width:1.5}
+.mk .sib{fill:var(--card);stroke:var(--bd2);stroke-width:1.5}
+.mk .root{fill:rgba(110,247,160,.12);stroke:var(--grn);stroke-width:2}
+.mk text{font-family:var(--mono);font-size:9px;fill:var(--mut)}
+.mk .ok{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12.5px;color:var(--grn);opacity:0;transform:translateY(4px);transition:.5s .9s}
+.mk.in .ok{opacity:1;transform:none}
+.mk .ok i{width:20px;height:20px;border-radius:50%;background:rgba(110,247,160,.15);display:grid;place-items:center}
+
+/* reveal */
+.rv{opacity:0;transform:translateY(14px);transition:opacity .6s,transform .6s}
+.rv.in{opacity:1;transform:none}
+
+.foot{margin-top:48px;padding-top:18px;border-top:1px solid var(--bd);font-family:var(--mono);font-size:12px;color:var(--faint)}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important;transition:none !important}
+  .rv,.node{opacity:1;transform:none}
+  .mk .path{stroke-dashoffset:0}.facs .fill{width:var(--w)}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="brand" href="/"><span class="pr">&gt;_</span>Sharp</a>
+  <a class="back" href="/">open the app →</a>
+</header>
+
+<div class="eyebrow">Technical Documentation</div>
+<h1>Sharp reads the market,<br>then <span class="g">proves it</span>.</h1>
+<p class="sub">Autonomous sharp-money trading agent on Solana, built on TxLINE.<br>Live: <a href="https://sharp.smartcodedbot.com">sharp.smartcodedbot.com</a> · Solana devnet · TxODDS World Cup hackathon.</p>
+
+<div class="hviz" id="hviz">
+  <div class="top"><span class="live"><i></i>USA v Bosnia &amp; Herzegovina · implied HOME</span><span id="hcls">de-vig 1X2</span></div>
+  <canvas id="hcv"></canvas>
+  <div class="flag" id="hflag">STEAM DETECTED</div>
+  <div class="read"><div class="big" id="hval">48.0%</div><div class="lab">consensus, no vig</div></div>
+</div>
+
+<h2>The 60-second loop <span class="hn">autonomous, no human in the loop</span></h2>
+<p>Once deployed, Sharp runs unattended. Every cycle walks the same pipeline: ingest the feed, recover true probability, look for sharp-money steam, and if it fires, commit and act before the whistle, then grade and prove it after.</p>
+<div class="loop" id="loop">
+  <div class="node" data-i="0"><span class="st">01</span><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div><h4>Ingest</h4><p>Pull TxLINE odds, scores and validation for every live World Cup fixture.</p></div>
+  <div class="node" data-i="1"><span class="st">02</span><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></div><h4>De-vig</h4><p>Strip the bookmaker margin to recover honest, no-vig probabilities.</p></div>
+  <div class="node" data-i="2"><span class="st">03</span><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7z"/></svg></div><h4>Detect steam</h4><p>Score the move on five factors; fire on a confirmed sharp repricing.</p></div>
+  <div class="node" data-i="3"><span class="st">04</span><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M8 8V6a4 4 0 0 1 8 0v2"/></svg></div><h4>Commit</h4><p>SHA-256 the decision and anchor it on Solana before kickoff.</p></div>
+  <div class="node" data-i="4"><span class="st">05</span><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg></div><h4>Trade</h4><p>Open a conviction-sized paper position against the closing line.</p></div>
+  <div class="node" data-i="5"><span class="st">06</span><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg></div><h4>Settle</h4><p>Grade on exact closing-line value and the real full-time result.</p></div>
+  <div class="node" data-i="6"><span class="st">07</span><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg></div><h4>Prove</h4><p>Verify the source odds on-chain via txoracle.validate_odds.</p></div>
+  <div class="node" data-i="7" style="grid-column:span 1"><span class="st">↻</span><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v5h-5"/></svg></div><h4>Repeat</h4><p>Every 60 seconds, forever, with no human input.</p></div>
+</div>
+<div class="loopnote">one full cycle every <b>60 seconds</b> · the highlighted stage advances as the agent thinks</div>
+
+<h2 class="rv">Core idea</h2>
+<p class="rv">Sharp is an autonomous sharp-money trading agent. It reads TxLINE consensus odds for World Cup and International Friendlies fixtures, strips the bookmaker margin to recover honest probabilities, and detects the moment professional money reprices an outcome (steam). On a confirmed steam it commits its decision to Solana before the match resolves, opens a conviction-sized paper position, then grades itself on closing-line value and the real full-time result.</p>
+<p class="rv">Critically, it does not ask you to trust it: it calls TxLINE's own on-chain program to prove the odds it acted on are the canonical, tamper-evident record. This is the sponsor's own first "ideas to get started" (a Sharp Movement Detector that monitors odds every 60 seconds and tracks whether it predicted the outcome), taken to a full autonomous, self-grading, on-chain-verifiable agent.</p>
+
+<h2>The signal engine <span class="hn">deterministic, pure, unit-testable</span></h2>
+<p class="rv"><code>signal.js</code> de-vigs each 1X2 market and scores movement on five weighted factors. STEAM fires at conviction &gt;= 66 with directional purity &gt;= 0.5. It holds no hidden state and runs the same offline as it does live.</p>
+<div class="facs" id="facs">
+  <div class="fac"><div class="fh"><span class="nm">Direction</span><span class="wt">0.34</span></div><div class="track"><i class="fill" style="--w:100%"></i></div></div>
+  <div class="fac"><div class="fh"><span class="nm">Velocity</span><span class="wt">0.22</span></div><div class="track"><i class="fill" style="--w:65%"></i></div></div>
+  <div class="fac"><div class="fh"><span class="nm">Steam · directional purity</span><span class="wt">0.20</span></div><div class="track"><i class="fill" style="--w:59%"></i></div></div>
+  <div class="fac"><div class="fh"><span class="nm">Magnitude vs own noise</span><span class="wt">0.14</span></div><div class="track"><i class="fill" style="--w:41%"></i></div></div>
+  <div class="fac"><div class="fh"><span class="nm">Signal to noise</span><span class="wt">0.10</span></div><div class="track"><i class="fill" style="--w:29%"></i></div></div>
+  <div class="facsub">weights sum to 1.0 · a 1X2 steam is also cross-checked against the Asian-handicap line for agreement</div>
+</div>
+
+<h2>Technical highlights</h2>
+<ul>
+<li class="rv"><b>Paper trading book</b>: a 100-unit bankroll, conviction-sized stakes (0.5u to 3u), P&amp;L / ROI / win-loss, and a bankroll curve. It trades, it does not merely signal.</li>
+<li class="rv"><b>Commit-reveal</b>: every call SHA-256-hashes its full decision and anchors that commitment to Solana (SPL Memo) before kickoff. Reveal = re-hash the settled call; it must match. The agent cannot rewrite its own history.</li>
+<li class="rv"><b>Exact closing-line value</b>: at settlement it pulls the odds as of kickoff via <code>asOf</code> (the true closing line) and grades CLV exactly, not by proxy.</li>
+<li class="rv"><b>Fully autonomous</b>: a 60-second loop ingests, scores, positions, anchors, settles, grades and verifies with no human in the loop.</li>
+</ul>
+
+<h2>Trustless on-chain verification <span class="hn">the differentiator</span></h2>
+<p class="rv"><code>verify.js</code> calls TxLINE's <code>txoracle.validate_odds</code> read instruction with the odds message, its demargined summary, and the Merkle proof, checked against the daily odds-root PDA. If the proof walks cleanly to the on-chain root, the odds Sharp acted on are proven canonical. A public endpoint, <code>/api/verify</code>, lets anyone run it from the browser in about 150ms.</p>
+<div class="mk" id="mk">
+  <svg viewBox="0 0 230 150" aria-label="Merkle proof from the odds leaf up to the on-chain root">
+    <!-- dim tree -->
+    <line class="dim" x1="115" y1="26" x2="60" y2="66"/><line class="dim" x1="115" y1="26" x2="170" y2="66"/>
+    <line class="dim" x1="60" y1="66" x2="30" y2="112"/><line class="dim" x1="60" y1="66" x2="90" y2="112"/>
+    <line class="dim" x1="170" y1="66" x2="140" y2="112"/><line class="dim" x1="170" y1="66" x2="200" y2="112"/>
+    <!-- proof path leaf(30,112) -> node(60,66) -> root(115,26) -->
+    <path class="path" d="M30 112 L60 66 L115 26"/>
+    <!-- siblings on path -->
+    <circle class="sib" cx="90" cy="112" r="11"/><circle class="sib" cx="170" cy="66" r="12"/>
+    <text x="90" y="132" text-anchor="middle">sibling</text><text x="170" y="46" text-anchor="middle">sibling</text>
+    <!-- proof nodes -->
+    <rect class="leaf" x="18" y="101" width="24" height="22" rx="4"/><text x="30" y="140" text-anchor="middle">odds</text>
+    <circle class="pn" cx="60" cy="66" r="12"/>
+    <ellipse class="root" cx="115" cy="26" rx="28" ry="16"/><text x="115" y="30" text-anchor="middle" fill="#6ef7a0">daily root</text>
+  </svg>
+  <div>
+    <p style="margin:0 0 10px;font-size:13px">The odds leaf hashes upward through its proof siblings to the exact <b>daily Merkle root</b> published on-chain by TxLINE. Sharp never has to be trusted; the chain is the referee.</p>
+    <span class="ok"><i><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#6ef7a0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4 10-10"/></svg></i>verified against on-chain root</span>
+  </div>
+</div>
+
+<h2>TxLINE endpoints used</h2>
+<div class="card rv">
+<ul>
+<li><code>POST /auth/guest/start</code> · guest JWT</li>
+<li>on-chain <code>subscribe(serviceLevelId=1, durationWeeks=4)</code> · free World Cup tier (0 tokens)</li>
+<li><code>POST /api/token/activate</code> · API token (ed25519 wallet signature over <code>txSig:leagues:jwt</code>)</li>
+<li><code>GET /api/fixtures/snapshot</code> · World Cup and friendlies fixtures</li>
+<li><code>GET /api/odds/snapshot/{fixtureId}</code> · consensus 1X2, de-vigged via the demargined <code>Pct</code></li>
+<li><code>GET /api/odds/snapshot/{fixtureId}?asOf={kickoffMs}</code> · exact closing line for true CLV</li>
+<li><code>GET /api/odds/updates/{fixtureId}</code> · message IDs for validation, and the Asian-handicap market</li>
+<li><code>GET /api/scores/snapshot/{fixtureId}</code> · match state and result for settlement</li>
+<li><code>GET /api/odds/validation?messageId={id}&amp;ts={ms}</code> · Merkle proof for an odds message</li>
+<li>on-chain <code>txoracle.validate_odds(ts, odds, summary, subTreeProof, mainTreeProof)</code> against the <code>daily_batch_roots</code> PDA · trustless verification</li>
+</ul>
+<p style="font-family:var(--mono);font-size:12.5px;color:var(--mut)">Markets consumed: <code>1X2_PARTICIPANT_RESULT</code> (primary signal) and <code>ASIANHANDICAP_PARTICIPANT_GOALS</code> (cross-confirmation).</p>
+</div>
+
+<h2>Architecture</h2>
+<ul>
+<li class="rv"><code>signal.js</code> · pure de-vig and steam scoring engine</li>
+<li class="rv"><code>txline.js</code> · TxLINE client (guest JWT, on-chain subscribe, activate, then fixtures / odds / scores / validation / handicap)</li>
+<li class="rv"><code>verify.js</code> · trustless on-chain verification via <code>txoracle.validate_odds</code></li>
+<li class="rv"><code>anchor.js</code> · Solana memo anchoring for the decision commitment and the graded result</li>
+<li class="rv"><code>agent.js</code> · the autonomous loop; writes <code>board.json</code>, <code>calls.json</code>, <code>events.json</code></li>
+<li class="rv"><code>server.js</code> · read-only API exposing <code>/api/verify</code> (live on-chain verification for judges)</li>
+<li class="rv"><code>web/</code> · static mobile-first terminal UI (Board / Calls / Track / How)</li>
+</ul>
+
+<h2>Run it</h2>
+<pre class="rv"><span class="c"># install</span>
+npm install
+<span class="c"># unit self-test, no network</span>
+node signal.js
+<span class="c"># full pipeline on synthetic steam, no keys required</span>
+node agent.js --mock
+<span class="c"># trustless on-chain odds verification demo (devnet)</span>
+node verify.js
+<span class="c"># live TxLINE devnet (needs a funded devnet wallet)</span>
+node agent.js</pre>
+<p class="rv">Devnet txoracle program: <code>6pW64gN1s2uqjHkn1unFeEjAwJkPGHoppGvS715wyP2J</code>.</p>
+
+<div class="foot">Sharp · TxODDS x Solana World Cup hackathon · Trading Tools and Agents</div>
+</div>
+
+<script>
+var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---- scroll reveals + one-shot triggers ---- */
+var io = new IntersectionObserver(function(es){
+  es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+}, { threshold: .18 });
+document.querySelectorAll('.rv,.facs,.mk,.loop').forEach(function(el){ io.observe(el); });
+
+/* ---- pipeline: advance the highlighted stage ---- */
+(function(){
+  var nodes = [].slice.call(document.querySelectorAll('#loop .node'));
+  if(!nodes.length || reduce) return;
+  var i = 0;
+  setInterval(function(){
+    nodes.forEach(function(n){ n.classList.remove('hot'); });
+    nodes[i % nodes.length].classList.add('hot');
+    i++;
+  }, 900);
+})();
+
+/* ---- hero: rolling odds line with steam spikes ---- */
+(function(){
+  var cv = document.getElementById('hcv'); if(!cv) return;
+  var ctx = cv.getContext('2d'), DPR = Math.min(2, window.devicePixelRatio||1);
+  var W=0, H=0;
+  function size(){ W = cv.clientWidth; H = 132; cv.width = W*DPR; cv.height = H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); }
+  size(); addEventListener('resize', size);
+  var val = document.getElementById('hval'), flag = document.getElementById('hflag');
+  var N = 120, buf = [], base = 48, cur = 48, target = 48, steamAt = -999, t = 0;
+  for(var k=0;k<N;k++) buf.push(48);
+  function reseed(){ target = base + (Math.random()*6 - 3); }
+  reseed();
+  function step(){
+    t++;
+    // occasional steam event
+    if(t % 260 === 0){ base = 44 + Math.random()*10; target = base + 6 + Math.random()*3; steamAt = t; if(flag){ flag.style.left = '62%'; flag.classList.add('on'); setTimeout(function(){ flag.classList.remove('on'); }, 2200); } }
+    else if(t % 65 === 0){ reseed(); }
+    cur += (target - cur) * 0.06 + (Math.random()-0.5)*0.25;
+    buf.push(cur); if(buf.length>N) buf.shift();
+    if(val) val.textContent = cur.toFixed(1) + '%';
+    draw();
+    raf = requestAnimationFrame(step);
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // grid
+    ctx.strokeStyle = 'rgba(255,255,255,.04)'; ctx.lineWidth=1;
+    for(var g=1;g<4;g++){ var y=H*g/4; ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+    var min=100,max=0,i; for(i=0;i<buf.length;i++){ if(buf[i]<min)min=buf[i]; if(buf[i]>max)max=buf[i]; }
+    min-=2; max+=2; var rng=Math.max(1,max-min);
+    function X(i){ return i/(N-1)*W; }
+    function Y(v){ return H - 12 - (v-min)/rng*(H-24); }
+    // fill
+    ctx.beginPath(); ctx.moveTo(0,H);
+    for(i=0;i<buf.length;i++){ ctx.lineTo(X(i), Y(buf[i])); }
+    ctx.lineTo(W,H); ctx.closePath();
+    var gr = ctx.createLinearGradient(0,0,0,H); gr.addColorStop(0,'rgba(110,247,160,.20)'); gr.addColorStop(1,'rgba(110,247,160,0)');
+    ctx.fillStyle = gr; ctx.fill();
+    // line
+    ctx.beginPath(); for(i=0;i<buf.length;i++){ var x=X(i),y=Y(buf[i]); i?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+    var hot = (t - steamAt) < 60;
+    ctx.strokeStyle = hot ? '#8ff8b6' : '#6ef7a0'; ctx.lineWidth = 2; ctx.lineJoin='round'; ctx.stroke();
+    // leading dot
+    var lx=X(buf.length-1), ly=Y(buf[buf.length-1]);
+    ctx.beginPath(); ctx.arc(lx,ly,3.2,0,7); ctx.fillStyle='#6ef7a0'; ctx.fill();
+    ctx.beginPath(); ctx.arc(lx,ly,7,0,7); ctx.fillStyle='rgba(110,247,160,.18)'; ctx.fill();
+  }
+  var raf;
+  if(reduce){ draw(); } else { raf = requestAnimationFrame(step); }
+})();
+</script>
+</body>
+</html>
