@@ -435,6 +435,58 @@ section{scroll-margin-top:70px}
   </div><!-- /view-how -->
 </div>
 
+<style>
+.sft{position:relative;margin-top:46px}
+.sft:before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(110,247,160,.55),rgba(70,214,230,.42),transparent)}
+.sftin{max-width:var(--max);margin:0 auto;padding:36px 20px 8px;display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:26px}
+.sftb .bm{font-family:var(--mono);font-weight:700;font-size:17px;color:var(--txt);display:inline-flex;align-items:center;gap:2px}
+.sftb .bm .pr{color:var(--grn)}
+.sftb p{color:var(--mut);font-size:12.5px;line-height:1.6;margin:12px 0 14px;max-width:34ch}
+.sftb .tags{display:flex;gap:7px;flex-wrap:wrap}
+.sftb .tags span{font-family:var(--mono);font-size:10.5px;color:var(--faint);border:1px solid var(--bd);border-radius:20px;padding:3px 9px}
+.sftcol h5{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);margin:2px 0 11px}
+.sftcol a{display:block;width:fit-content;color:var(--mut);text-decoration:none;font-size:13px;padding:5px 0;transition:color .15s,transform .15s}
+.sftcol a:hover{color:var(--grn);transform:translateX(2px)}
+.sftcol a .ar{color:var(--faint);font-family:var(--mono);font-size:11px;margin-left:4px}
+.sftbar{max-width:var(--max);margin:14px auto 0;padding:16px 20px 30px;border-top:1px solid var(--bd);display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:11.5px;color:var(--faint)}
+.sftbar .chip{display:inline-flex;align-items:center;gap:7px;color:var(--grn);border:1px solid rgba(110,247,160,.28);border-radius:20px;padding:4px 11px}
+.sftbar .chip i{width:6px;height:6px;border-radius:50%;background:var(--grn);box-shadow:0 0 8px var(--grn);animation:sftp 1.9s infinite}
+@keyframes sftp{0%,100%{opacity:1}50%{opacity:.35}}
+.sftbar b{color:var(--mut);font-weight:400}
+.sftbar .sm{color:var(--grn2)}
+@media(max-width:640px){.sftin{grid-template-columns:1fr 1fr;gap:22px 16px;padding-top:30px}.sftb{grid-column:1 / -1}.sftbar{justify-content:center;text-align:center;flex-direction:column;gap:14px}}
+@media (prefers-reduced-motion: reduce){.sftbar .chip i{animation:none}}
+</style>
+<footer class="sft">
+  <div class="sftin">
+    <div class="sftb">
+      <span class="bm"><span class="pr">&gt;_</span>Sharp</span>
+      <p>Autonomous sharp-money trading agent. It reads the market on TxLINE, calls the steam, and proves its own data on Solana.</p>
+      <div class="tags"><span>Solana devnet</span><span>TxLINE</span><span>autonomous</span></div>
+    </div>
+    <div class="sftcol">
+      <h5>Explore</h5>
+      <a href="#board">Board</a><a href="#calls">Calls</a><a href="#track">Track record</a><a href="#how">How it works</a>
+    </div>
+    <div class="sftcol">
+      <h5>Build</h5>
+      <a href="/tech.html">Technical docs</a><a href="/api/verify" target="_blank" rel="noopener">Verify API <span class="ar">&#8599;</span></a><a href="/sharp-demo.mp4?v=2" target="_blank" rel="noopener">Demo video <span class="ar">&#8599;</span></a>
+    </div>
+    <div class="sftcol">
+      <h5>Studio</h5>
+      <a href="https://x.com/SmartCodedBot" target="_blank" rel="noopener">@SmartCodedBot <span class="ar">&#8599;</span></a>
+      <a href="https://x.com/SmartCodedBot/status/2072400048839655842" target="_blank" rel="noopener">Launch post <span class="ar">&#8599;</span></a>
+      <a href="https://sharp.smartcodedbot.com">sharp.smartcodedbot.com</a>
+    </div>
+  </div>
+  <div class="sftbar">
+    <span class="chip"><i></i>Live on Solana devnet</span>
+    <span>Built for the <b>TxODDS &#215; Solana</b> World Cup hackathon</span>
+    <span>&#169; 2026 SmartCodedBot &middot; Powered by <span class="sm">$SMART</span></span>
+  </div>
+</footer>
+
+
 <div class="scrim" id="scrim"></div>
 <div class="vmodal" id="vmodal"><button class="vclose" id="vClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button><video id="vplayer" controls playsinline preload="none" poster="/og.png"><source src="/sharp-demo.mp4?v=2" type="video/mp4"></video></div>
 <div class="sheet" id="sheet"><div class="grab"></div><button class="sclose" id="sClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button><div id="sBody"></div></div>
