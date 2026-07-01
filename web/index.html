@@ -246,6 +246,15 @@ section{scroll-margin-top:70px}
 .foot a{color:var(--mut)}
 .foot a:hover{color:var(--txt)}
 
+.btw{border:1px solid var(--bd);border-radius:14px;padding:20px 18px;background:linear-gradient(180deg,rgba(110,247,160,.035),transparent)}
+.btw-h{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-weight:600;font-size:14px;color:var(--txt)}
+.btw-h .dot2{width:8px;height:8px;border-radius:50%;background:var(--grn);box-shadow:0 0 8px var(--grn);animation:sftp 1.9s infinite}
+.btw-p{color:var(--mut);font-size:13px;margin:10px 0 14px;max-width:60ch;line-height:1.6}
+.btw-st{display:flex;flex-wrap:wrap;gap:18px;font-family:var(--mono);font-size:12px;color:var(--faint);margin-bottom:16px}
+.btw-st b{color:var(--grn);font-size:15px}
+.btw-calls{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.btw-cta{display:flex;flex-wrap:wrap;gap:10px}
+@keyframes sftp{0%,100%{opacity:1}50%{opacity:.4}}
 .empty{border:1px dashed var(--bd2);border-radius:8px;padding:28px 18px;text-align:center;color:var(--faint);font-family:var(--mono);font-size:12.5px}
 
 /* modal */
@@ -586,6 +595,22 @@ function callCard(c,st){const clv=typeof c.clv_pp==='number'?c.clv_pp:null,r=st?
   el.onclick=()=>openCall(c,st);return el;}
 function ancLink(c){const a=c.anchor;if(!a||!a.sig)return'';const nt=a.cluster&&a.cluster!=='mainnet'?'?cluster='+a.cluster:'';
   return`<a class="anc" href="https://explorer.solana.com/tx/${a.sig}${nt}" target="_blank" rel="noopener" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2"/><path d="M12 7v12M6 12H5c0 4 3 6 7 6s7-2 7-6h-1"/></svg>${a.sig.slice(0,4)}…${a.sig.slice(-4)}</a>`;}
+function renderBetween(el){
+  var set=S.calls.filter(function(c){return c.status==='settled';});
+  var anc=S.calls.filter(function(c){return c.anchor&&c.anchor.sig;}).length;
+  var recent=S.calls.slice(0,3);
+  el.innerHTML='<div class="btw"><div class="btw-h"><span class="dot2"></span>Between matches</div>'+
+    '<p class="btw-p">No World Cup fixtures are in the TxLINE window right now. Sharp stays live and scans the feed every 60 seconds. Here is the record it has built.</p>'+
+    '<div class="btw-st"><span><b>'+S.calls.length+'</b> calls made</span><span><b>'+anc+'</b> anchored on-chain</span><span><b>'+set.length+'</b> graded</span></div>'+
+    '<div class="btw-calls" id="btwCalls"></div>'+
+    '<div class="btw-cta"><button class="btn wht sm" id="btwAll">See all calls</button><button class="btn gh sm" id="btwVerBtn">Verify source odds on-chain</button></div>'+
+    '<div id="btwVer" class="vres"></div></div>';
+  var cc=el.querySelector('#btwCalls');
+  if(cc&&recent.length){recent.forEach(function(c){cc.appendChild(callCard(c,c.status==='settled'));});}
+  else if(cc){cc.innerHTML='<div class="empty">Calls appear here as steam fires.</div>';}
+  var a=el.querySelector('#btwAll');if(a){a.onclick=function(){go('calls');};}
+  var v=el.querySelector('#btwVerBtn');if(v){v.onclick=function(){sharpVerify('btwVer');};}
+}
 function fillList(el,items,make,empty){el.innerHTML='';if(!items.length){el.innerHTML=empty;return;}items.forEach((it,i)=>{const c=make(it);c.classList.add('rv');c.style.animationDelay=(i*40)+'ms';el.appendChild(c);});}
 
 function render(){const b=S.board;
@@ -598,7 +623,7 @@ function render(){const b=S.board;
     if(pv&&pv.verified)$('#vchip').title='Verified on-chain via txoracle.validate_odds'+(pv.method?' ('+pv.method+')':'')+' · '+(pv.proof_depth||0)+'-node Merkle proof vs daily root '+(pv.pda||'');
     $('#upd').textContent='board updated '+ago(b.updated_at)+' ago';
     const fx=b.fixtures||[];$('#bN').textContent=fx.length?fx.length+' fixtures':'';
-    fillList($('#boardL'),fx,fxCard,'<div class="empty">No fixtures in this window.</div>');
+    if(fx.length){fillList($('#boardL'),fx,fxCard,'');}else{renderBetween($('#boardL'));}
     const pnl=s.pnl_u??0,up=pnl>=0;const pb=$('#pnlBig');
     pb.innerHTML=(up?'+':'')+pnl+'<small>u</small>';pb.style.color=up?'var(--grn)':'var(--neg)';
     $('#pnlBank').textContent=s.bankroll??100;
