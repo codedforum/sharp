@@ -21,7 +21,7 @@ function getAnchorer() { if (!anchorer) { const { Anchor } = require('./anchor')
 const POLL_MS = +process.env.POLL_MS || 60_000;   // 60s live; override low to seed a demo
 const STEAM_AT = 66;                    // conviction threshold to open a call
 const SETTLE_CYCLES = 24;               // (mock) cycles after which a call's edge is graded + closed
-const BANKROLL0 = 100;                  // starting paper bankroll (units) — the agent trades its own book
+const BANKROLL0 = 100;                  // starting paper bankroll (units) · the agent trades its own book
 const STARTED = new Date().toISOString();  // agent boot time (for the live autonomy heartbeat)
 const clampN = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
 // stake sizing: scale with conviction (Kelly-lite). 66 conv -> 1.0u, 82 -> 2.0u, 98 -> 3.0u, capped 0.5..3

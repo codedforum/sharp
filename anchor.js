@@ -67,6 +67,6 @@ if (require.main === module) {
   (async () => {
     const a = new Anchor({ cluster: 'devnet' });
     const r = await a.anchorCall({ fixtureId: 'TEST-1', name: 'Argentina v France', side: 'HOME', score: 78, implied_at_call: 0.52 });
-    console.log(r ? `anchored ${r.sig} (slot ${r.slot}) → https://explorer.solana.com/tx/${r.sig}?cluster=devnet` : 'anchor returned null (wallet unfunded — expected until faucet clears)');
+    console.log(r ? `anchored ${r.sig} (slot ${r.slot}) → https://explorer.solana.com/tx/${r.sig}?cluster=devnet` : 'anchor returned null (wallet unfunded · expected until faucet clears)');
   })();
 }
