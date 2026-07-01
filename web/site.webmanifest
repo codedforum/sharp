@@ -1,0 +1,13 @@
+{
+  "name": "Sharp · autonomous sharp-money agent",
+  "short_name": "Sharp",
+  "description": "Reads TxLINE odds, calls the steam, grades itself on closing-line value, anchored on Solana.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "icons": [
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

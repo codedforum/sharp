@@ -1,0 +1,14 @@
+# secrets - NEVER commit
+.devkey.json
+.session.json
+.env
+.env.*
+*.key
+*.pem
+# runtime + uploads
+data/
+uploads/
+*.log
+# deps + os
+node_modules/
+.DS_Store

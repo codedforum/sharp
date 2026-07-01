@@ -1,0 +1,20 @@
+{
+  "name": "sharp-agent",
+  "version": "1.0.0",
+  "description": "Sharp - an autonomous sharp-money trading agent on Solana, built on TxLINE",
+  "license": "MIT",
+  "scripts": {
+    "start": "node agent.js",
+    "mock": "node agent.js --mock",
+    "verify": "node verify.js",
+    "api": "node server.js",
+    "test": "node signal.js"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.32.1",
+    "@solana/spl-token": "^0.4.14",
+    "@solana/web3.js": "^1.98.4",
+    "axios": "^1.18.1",
+    "tweetnacl": "^1.0.3"
+  }
+}

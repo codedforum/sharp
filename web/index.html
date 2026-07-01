@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0a0a" />
+<title>Sharp · autonomous sharp-money agent</title>
+<meta name="description" content="An autonomous agent that watches every World Cup match on TxLINE, strips the vig, and calls the steam when sharp money reprices an outcome. Self-grading on closing-line value, anchored on Solana." />
+<meta name="keywords" content="Sharp, sharp money, sports trading agent, TxLINE, TxODDS, Solana, World Cup odds, steam detection, closing line value, de-vig, autonomous agent, on-chain, betting odds" />
+<meta name="author" content="SmartCodedBot" />
+<meta name="robots" content="index, follow" />
+<meta name="color-scheme" content="dark" />
+<link rel="canonical" href="https://sharp.smartcodedbot.com/" />
+<!-- favicon / pwa -->
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/favicon.ico" sizes="any" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
+<!-- open graph -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Sharp" />
+<meta property="og:title" content="Sharp · autonomous sharp-money agent" />
+<meta property="og:description" content="Watches every World Cup match on TxLINE, strips the vig, and calls the steam when sharp money reprices an outcome. Self-grading on closing-line value, anchored on Solana." />
+<meta property="og:url" content="https://sharp.smartcodedbot.com/" />
+<meta property="og:image" content="https://sharp.smartcodedbot.com/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Sharp · sharp money moves the line first" />
+<!-- twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:site" content="@smartcoded" />
+<meta name="twitter:creator" content="@smartcoded" />
+<meta name="twitter:title" content="Sharp · autonomous sharp-money agent" />
+<meta name="twitter:description" content="Reads TxLINE odds, calls the steam, grades itself on closing-line value, anchored on Solana. TxODDS × Solana World Cup Hackathon." />
+<meta name="twitter:image" content="https://sharp.smartcodedbot.com/og.png" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Sharp","applicationCategory":"FinanceApplication","operatingSystem":"Web","url":"https://sharp.smartcodedbot.com/","description":"An autonomous agent that watches every World Cup match on TxLINE, strips the vig, and calls the steam when sharp money reprices an outcome. Self-grading on closing-line value, anchored on Solana.","author":{"@type":"Organization","name":"SmartCodedBot","url":"https://smartcodedbot.com"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#09090b; --panel:#0d0d10; --card:#101013; --raise:#17171b;
+  --bd:rgba(255,255,255,.09); --bd2:rgba(255,255,255,.16);
+  --txt:#f4f5f7; --mut:#aab2bd; --faint:#6a7078;
+  --grn:#6ef7a0; --grn2:#42d98a; --cyan:#46d6e6;
+  --pos:#6ef7a0; --neg:#ff6b6b; --amber:#ffb84d;
+  --home:#6ef7a0; --draw:#4b5563; --away:#46d6e6;
+  --grad:linear-gradient(96deg,#6ef7a0,#46d6e6);
+  --mono:"JetBrains Mono",ui-monospace,monospace; --sans:"Inter",system-ui,sans-serif;
+  --ease:cubic-bezier(.22,1,.36,1); --max:1200px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;max-width:100%;overflow-x:hidden;background:var(--bg);color:var(--txt);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
+svg{max-width:100%}
+.ey{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--faint);font-weight:500}
+.ey b{color:var(--grn);font-weight:600}
+.tag{font-family:var(--mono);font-size:11px;color:var(--grn);border:1px solid rgba(110,247,160,.4);border-radius:4px;padding:3px 8px;background:rgba(110,247,160,.06)}
+
+/* grid backdrop */
+.bg{position:fixed;inset:0;z-index:-2;background:
+  linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);
+  background-size:46px 46px;mask:radial-gradient(120vw 90vh at 70% -5%,#000 40%,transparent 92%)}
+.glow{position:fixed;inset:0;z-index:-1;pointer-events:none;background:
+  radial-gradient(52vw 40vh at 84% -4%,rgba(70,214,230,.10),transparent 60%),
+  radial-gradient(46vw 38vh at 6% 4%,rgba(110,247,160,.07),transparent 58%)}
+
+/* header */
+.hd{position:sticky;top:0;z-index:40;height:60px;display:flex;align-items:center;gap:16px;padding:0 20px;
+  background:rgba(9,9,11,.78);backdrop-filter:blur(12px);border-bottom:1px solid var(--bd)}
+.brand{font-family:var(--mono);font-weight:700;font-size:18px;display:flex;align-items:center;gap:8px}
+.brand .pr{color:var(--grn)}
+.nav{display:none;gap:4px;margin-left:14px}
+.nav a{font-family:var(--mono);font-size:12.5px;letter-spacing:.06em;color:var(--mut);padding:8px 12px;border-radius:4px;text-transform:uppercase}
+.nav a:hover{color:var(--txt);background:var(--card)}
+.nav a.on{color:var(--grn);background:rgba(110,247,160,.08)}
+.hd .sp{flex:1}
+.btn{font-family:var(--mono);font-size:12.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+  padding:10px 16px;border-radius:5px;transition:transform .15s var(--ease),opacity .15s;display:inline-flex;align-items:center;gap:8px}
+.btn:active{transform:scale(.96)}
+.btn.wht{background:#fff;color:#09090b}
+.btn.wht:hover{opacity:.9}
+.btn.gh{border:1px solid var(--bd2);color:var(--txt)}
+.btn.gh:hover{background:var(--card)}
+.btn svg{width:12px;height:12px}
+
+.wrap{max-width:var(--max);margin:0 auto;padding:0 20px}
+section{scroll-margin-top:70px}
+.view{display:none;animation:fade .4s var(--ease) both}
+.view.on{display:block}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1fr;gap:32px;padding:44px 0 30px;align-items:center}
+.hero h1{font-family:var(--mono);font-weight:800;font-size:clamp(38px,9vw,74px);line-height:.98;
+  letter-spacing:-.02em;text-transform:uppercase}
+.hero h1 .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero h1 .dot{color:var(--grn)}
+.lede{color:var(--mut);font-size:16px;line-height:1.6;margin-top:20px;max-width:46ch}
+.lede b{color:var(--txt);font-weight:600}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}
+.cta .btn{padding:13px 20px;font-size:13px;border-radius:6px}
+.tline{font-family:var(--mono);font-size:12px;color:var(--faint);margin-top:20px;display:flex;align-items:center;gap:9px}
+.tdot{width:7px;height:7px;border-radius:50%;background:var(--grn);box-shadow:0 0 0 3px rgba(110,247,160,.14);animation:pulse 2.2s infinite}
+.tdot.mock{background:var(--amber);box-shadow:0 0 0 3px rgba(255,184,77,.14)}
+
+/* terminal console */
+.term{border:1px solid var(--bd);border-radius:9px;background:linear-gradient(180deg,#0c0c0f,#0a0a0c);overflow:hidden;
+  box-shadow:0 24px 70px rgba(0,0,0,.5)}
+.tbar{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--bd);background:#0b0b0e}
+.dots{display:flex;gap:7px}
+.dots i{width:11px;height:11px;border-radius:50%;display:block}
+.dots i:nth-child(1){background:#ff5f57}.dots i:nth-child(2){background:#febc2e}.dots i:nth-child(3){background:#28c840}
+.ttabs{display:flex;gap:2px;margin-left:auto}
+.ttabs button{font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--faint);padding:5px 10px;border-radius:4px;text-transform:uppercase}
+.ttabs button.on{color:var(--grn);background:rgba(110,247,160,.08)}
+.tbody{font-family:var(--mono);font-size:13px;line-height:1.85;padding:16px 16px 18px;min-height:270px}
+.tbody .ln{white-space:pre-wrap;word-break:break-word}
+.tbody .ln.rv{opacity:0;animation:fade .35s var(--ease) forwards}
+.c-pr{color:var(--grn);font-weight:600}
+.c-fl{color:var(--faint)}
+.c-ar{color:var(--mut)}
+.c-ok{color:var(--grn)}
+.c-st{color:var(--grn);font-weight:600}
+.c-cy{color:var(--cyan)}
+.c-wt{color:var(--txt)}
+.c-neg{color:var(--neg)}
+.c-cur{display:inline-block;width:8px;height:15px;background:var(--grn);vertical-align:-2px;animation:blink 1.1s steps(1) infinite}
+
+/* sections */
+.sec{padding:44px 0 6px}
+.shead{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.shead h2{font-family:var(--mono);font-weight:800;font-size:clamp(22px,4vw,32px);text-transform:uppercase;letter-spacing:-.01em}
+.shead .n{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--faint)}
+
+/* stats */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bd);border:1px solid var(--bd);border-radius:8px;overflow:hidden;margin-bottom:22px}
+.st{background:var(--bg);padding:16px 16px}
+.st .k{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.st .v{font-family:var(--mono);font-size:28px;font-weight:700;margin-top:8px;letter-spacing:-.02em;line-height:1}
+.st .v small{font-size:13px;color:var(--mut)}
+
+/* board cards */
+.grid{display:grid;grid-template-columns:1fr;gap:12px}
+.fx{border:1px solid var(--bd);border-radius:8px;background:var(--card);padding:16px;cursor:pointer;
+  transition:border-color .18s,background .18s,transform .16s var(--ease);position:relative}
+.fx:active{transform:scale(.99)}
+.fx.steam{border-color:rgba(110,247,160,.34)}
+.fx.steam::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:2px;border-radius:2px;background:var(--grad)}
+.fxh{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.fxh .nm{font-weight:600;font-size:15.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:4px;border:1px solid transparent;flex:none}
+.chip.STEAM{color:#0a0a0a;background:var(--grn);border-color:var(--grn)}
+.chip.LEAN{color:var(--cyan);background:rgba(70,214,230,.10);border-color:rgba(70,214,230,.34)}
+.chip.DRIFT{color:var(--mut);background:rgba(170,178,189,.08);border-color:var(--bd2)}
+.chip.WATCH{color:var(--faint);background:transparent;border-color:var(--bd)}
+.fxb{display:flex;align-items:center;gap:16px;margin-bottom:14px}
+.conv b{font-family:var(--mono);font-size:28px;font-weight:700;letter-spacing:-.03em;line-height:1;display:block}
+.conv.hi b{color:var(--grn)}
+.conv span{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.spk{width:96px;height:34px;flex:none}
+.lean{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--mut);flex:none}
+.live{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.05em;color:#ff7a7a;display:inline-flex;align-items:center;gap:5px;flex:none}
+.live i{width:6px;height:6px;border-radius:50%;background:#ff5c5c;animation:lpulse 1.4s infinite}
+.ft{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.05em;color:var(--mut);flex:none}
+.vchip{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.03em;color:var(--grn);border:1px solid rgba(110,247,160,.28);background:rgba(110,247,160,.07);border-radius:5px;padding:3px 8px;text-decoration:none;white-space:nowrap;transition:background .2s}
+.vchip:hover{background:rgba(110,247,160,.14)}
+.vres{font-family:var(--mono);font-size:11.5px;color:var(--mut);margin-top:9px;line-height:1.65}
+.vspin{display:inline-block;width:11px;height:11px;border:2px solid rgba(110,247,160,.3);border-top-color:var(--grn);border-radius:50%;animation:spin .7s linear infinite;vertical-align:-1px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.btn.sm{padding:9px 13px;font-size:11px}
+.faint{color:var(--faint)}.mono{font-family:var(--mono)}
+.cc{border:1px solid rgba(110,247,160,.28);background:rgba(110,247,160,.06);color:var(--grn);font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.05em;padding:2px 6px;border-radius:4px;flex:none;text-transform:uppercase}
+.heroM{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--mut)}
+.heroM b{color:var(--txt);font-weight:600}.heroM .g{color:var(--grn)}
+.modelCard{border:1px solid var(--bd);border-radius:12px;background:var(--card);padding:20px 22px;margin-top:18px}
+.modelCard h3{font-size:15px;margin:0 0 12px}
+.mrow{display:flex;align-items:center;gap:12px;padding:7px 0;border-top:1px solid var(--bd);font-size:13px}
+.mrow:first-of-type{border-top:none}.mrow .mn{flex:1;color:var(--mut)}.mrow .mw{font-family:var(--mono);color:var(--txt);font-weight:600}
+.mbar{width:120px;height:5px;border-radius:3px;background:#17171b;overflow:hidden;flex:none}.mbar i{display:block;height:100%;background:var(--grad)}
+.feed{display:flex;flex-direction:column;border:1px solid var(--bd);border-radius:10px;overflow:hidden;background:var(--card)}
+.fi{display:flex;align-items:center;gap:11px;padding:11px 14px;font-size:12.5px;border-top:1px solid var(--bd);animation:fade .35s var(--ease) both}
+.fi:first-child{border-top:none}
+.fi .ft2{font-family:var(--mono);font-size:10.5px;color:var(--faint);flex:none;width:56px}
+.fi .fk{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 0;border-radius:4px;flex:none;width:52px;text-align:center}
+.fk.call{color:#6ef7a0;background:rgba(110,247,160,.1)}.fk.anchor{color:#46d6e6;background:rgba(70,214,230,.1)}
+.fk.verify{color:#6ef7a0;background:rgba(110,247,160,.1)}.fk.settle{color:#ffb84d;background:rgba(255,184,77,.12)}.fk.scan{color:var(--faint);background:rgba(255,255,255,.04)}
+.fi .fm{color:var(--mut);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@keyframes lpulse{0%{box-shadow:0 0 0 0 rgba(255,92,92,.55)}70%{box-shadow:0 0 0 6px rgba(255,92,92,0)}100%{box-shadow:0 0 0 0 rgba(255,92,92,0)}}
+.pnlHero{display:grid;grid-template-columns:minmax(0,290px) 1fr;gap:22px;align-items:center;border:1px solid var(--bd);border-radius:12px;background:var(--card);padding:22px 24px;margin-bottom:14px}
+.pnlBig{font-family:var(--mono);font-size:48px;font-weight:700;line-height:1;letter-spacing:-.02em}
+.pnlBig small{font-size:20px;opacity:.55;font-weight:600}
+.pnlLab{color:var(--mut);font-size:12.5px;margin-top:10px}.pnlLab b{color:var(--txt);font-weight:600}
+.pnlMeta{color:var(--faint);font-family:var(--mono);font-size:11.5px;margin-top:9px}.pnlMeta b{color:var(--mut)}
+.pnlChart{min-width:0}
+.trkTiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.tile{border:1px solid var(--bd);border-radius:9px;background:var(--card);padding:15px 16px}
+.tile .tv{font-family:var(--mono);font-size:25px;font-weight:700;line-height:1}.tile .tv small{font-size:13px;opacity:.55}
+.tile .tl{color:var(--mut);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;margin-top:6px}
+@media(max-width:720px){.pnlHero{grid-template-columns:1fr;gap:14px}.trkTiles{grid-template-columns:repeat(2,1fr)}}
+.lean b{color:var(--grn);font-weight:600}
+.mkt{display:flex;height:7px;border-radius:4px;overflow:hidden;background:var(--raise);gap:2px}
+.mkt i{display:block;height:100%;transition:flex-basis .6s var(--ease)}
+.mkt i.h{background:var(--home)}.mkt i.d{background:var(--draw)}.mkt i.a{background:var(--away)}
+.mktl{display:flex;gap:14px;margin-top:9px;font-family:var(--mono);font-size:11px;color:var(--mut)}
+.mktl b{color:var(--txt)}
+.mktl .ov{margin-left:auto;color:var(--faint)}
+
+/* calls */
+.call{border:1px solid var(--bd);border-left:2px solid var(--grn);border-radius:8px;background:var(--card);padding:14px;cursor:pointer;transition:border-color .18s,transform .16s var(--ease)}
+.call:active{transform:scale(.99)}
+.call.win{border-left-color:var(--grn)}.call.loss{border-left-color:var(--neg)}
+.call .ch{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.call .ch .nm{font-weight:600;font-size:14.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.call .ch .ag{font-family:var(--mono);font-size:10.5px;color:var(--faint);flex:none}
+.call .why{font-family:var(--mono);font-size:12px;color:var(--mut);line-height:1.55}
+.call .cf{display:flex;align-items:center;gap:9px;margin-top:11px;flex-wrap:wrap}
+.clv{font-family:var(--mono);font-weight:600;font-size:12px;padding:4px 8px;border-radius:4px}
+.clv.pos{color:var(--grn);background:rgba(110,247,160,.10)}
+.clv.neg{color:var(--neg);background:rgba(255,107,107,.10)}
+.clv.flat{color:var(--mut);background:var(--raise)}
+.mta{font-family:var(--mono);font-size:11px;color:var(--faint)}.mta b{color:var(--txt)}
+.anc{margin-left:auto;font-family:var(--mono);display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--cyan);padding:4px 8px;border-radius:4px;border:1px solid rgba(70,214,230,.3);background:rgba(70,214,230,.06)}
+.anc svg{width:11px;height:11px}
+
+/* track */
+.ringc{display:flex;align-items:center;gap:22px;border:1px solid var(--bd);border-radius:8px;background:var(--card);padding:22px;margin-bottom:20px}
+.ring{width:116px;height:116px;flex:none}
+.ringm .big{font-family:var(--mono);font-size:38px;font-weight:700;letter-spacing:-.03em;line-height:1}
+.ringm .big small{font-size:18px;color:var(--mut)}
+.ringm .lab{font-size:13px;color:var(--mut);margin-top:8px;max-width:22ch;line-height:1.4}
+.ringm .sub{font-family:var(--mono);font-size:11.5px;color:var(--faint);margin-top:9px}
+
+/* how */
+.steps{display:grid;grid-template-columns:1fr;gap:12px}
+.step{border:1px solid var(--bd);border-radius:8px;background:var(--card);padding:20px}
+.step .num{font-family:var(--mono);font-size:12px;color:var(--grn);font-weight:600}
+.step h3{font-size:16px;margin:10px 0 7px;letter-spacing:-.01em}
+.step p{font-size:13.5px;color:var(--mut);line-height:1.55}
+.pill{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--mut);border:1px solid var(--bd2);border-radius:4px;padding:6px 11px;margin:5px 6px 0 0}
+.foot{font-family:var(--mono);color:var(--faint);font-size:12px;line-height:1.8;padding:40px 0 60px;border-top:1px solid var(--bd);margin-top:44px}
+.foot a{color:var(--mut)}
+.foot a:hover{color:var(--txt)}
+
+.empty{border:1px dashed var(--bd2);border-radius:8px;padding:28px 18px;text-align:center;color:var(--faint);font-family:var(--mono);font-size:12.5px}
+
+/* modal */
+.scrim{position:fixed;inset:0;z-index:60;background:rgba(3,3,5,.72);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .24s}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:61;background:var(--panel);border:1px solid var(--bd2);border-bottom:none;
+  border-radius:14px 14px 0 0;padding:8px 18px calc(26px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto;
+  transform:translateY(101%);opacity:0;visibility:hidden;transition:transform .32s var(--ease),opacity .22s,visibility .22s;box-shadow:0 -18px 50px rgba(0,0,0,.6)}
+.sheet.on{transform:translateY(0);opacity:1;visibility:visible}
+.grab{width:36px;height:4px;border-radius:3px;background:var(--bd2);margin:6px auto 14px}
+.sclose{position:absolute;top:12px;right:14px;width:34px;height:34px;border-radius:6px;z-index:3;background:var(--card);border:1px solid var(--bd2);color:var(--mut);display:grid;place-items:center;transition:background .15s,color .15s}
+.sclose:hover{background:var(--raise);color:var(--txt)}.sclose svg{width:16px;height:16px}
+.sheet h3{font-size:19px;letter-spacing:-.01em;margin-bottom:3px;padding-right:44px}
+.sheet .ssub{font-family:var(--mono);color:var(--mut);font-size:12px;margin-bottom:16px}
+.fac{margin:12px 0}
+.fac .fl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px;margin-bottom:5px}
+.fac .fl .fn{color:var(--mut);text-transform:capitalize}.fac .fl b{font-weight:600}
+.bar{height:6px;border-radius:3px;background:var(--raise);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--grad);transition:width .7s var(--ease)}
+.kv{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--bd);font-size:13px}
+.kv .k{color:var(--mut)}.kv .v{font-family:var(--mono);font-weight:600}
+.shSpk{width:100%;height:74px;margin:4px 0}
+.lbl{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+
+/* tour */
+.tour{position:fixed;inset:0;z-index:80;display:none}
+.tour.on{display:block}
+.spot{position:absolute;border-radius:10px;box-shadow:0 0 0 4000px rgba(4,4,7,.8),0 0 0 1.5px var(--grn),0 0 26px rgba(110,247,160,.4);transition:all .4s var(--ease);opacity:0}
+.tcard{position:absolute;left:50%;transform:translateX(-50%);width:calc(100% - 28px);max-width:480px;background:var(--panel);
+  border:1px solid var(--bd2);border-radius:12px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.7);transition:top .4s var(--ease),bottom .4s var(--ease)}
+.tcard .ec{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--grn);font-weight:600}
+.tcard h4{margin:8px 0 6px;font-size:18px;letter-spacing:-.01em}
+.tcard p{font-size:13.5px;color:var(--mut);line-height:1.55}
+.tpr{display:flex;gap:5px;margin:15px 0 13px}
+.tpr i{height:2px;border-radius:2px;background:var(--bd2);flex:1;overflow:hidden;position:relative}
+.tpr i.done{background:var(--grn)}
+.tpr i.cur::after{content:"";position:absolute;inset:0;background:var(--grn);transform-origin:left;animation:fill 6.4s linear forwards}
+.tctl{display:flex;align-items:center;gap:9px}
+.tctl .nv{display:flex;gap:8px;margin-left:auto}
+.tb{font-family:var(--mono);font-size:12.5px;font-weight:600;padding:9px 15px;border-radius:5px;background:var(--card);border:1px solid var(--bd2);text-transform:uppercase;letter-spacing:.04em}
+.tb.pri{background:#fff;color:#09090b;border:none}.tb.gh{background:none;color:var(--faint);border:none;padding:9px 4px}
+
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}
+@keyframes fill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.rv{opacity:0;animation:fade .5s var(--ease) forwards}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.05s!important}.tdot{animation:none}.c-cur{animation:none}}
+
+@media(min-width:720px){
+  .stats{grid-template-columns:repeat(4,1fr)}
+  .grid{grid-template-columns:1fr 1fr}
+  .steps{grid-template-columns:repeat(3,1fr)}
+}
+@media(min-width:960px){
+  .nav{display:flex}
+  .hd{padding:0 28px}
+  .wrap{padding:0 28px}
+  .hero{grid-template-columns:1.05fr 1fr;gap:44px;padding:66px 0 40px}
+  .callsGrid{grid-template-columns:1fr 1fr;gap:12px}
+  .fx:hover{border-color:var(--bd2)}.call:hover{border-color:var(--bd2)}
+  .sheet{left:50%;right:auto;bottom:auto;top:50%;width:520px;max-width:calc(100vw - 40px);border-bottom:1px solid var(--bd2);
+    border-radius:12px;max-height:84vh;padding-top:22px;transform:translate(-50%,-46%);box-shadow:0 30px 80px rgba(0,0,0,.7)}
+  .sheet.on{transform:translate(-50%,-50%)}
+  .grab{display:none}
+}
+</style>
+</head>
+<body>
+<div class="bg"></div><div class="glow"></div>
+
+<header class="hd">
+  <a class="brand" href="#top"><span class="pr">&gt;_</span>Sharp</a>
+  <nav class="nav">
+    <a href="#board">Board</a><a href="#calls">Calls</a><a href="#track">Track</a><a href="#how">How</a>
+  </nav>
+  <span class="sp"></span>
+  <button class="btn wht play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Play demo</button>
+</header>
+
+<div class="wrap" id="top">
+  <div class="view on" id="view-board">
+  <!-- HERO -->
+  <section class="hero">
+    <div>
+      <h1>Sharp money<br>moves the line<br><span class="g">first</span><span class="dot">.</span></h1>
+      <p class="lede">An autonomous agent samples every World Cup match's consensus odds on <b>TxLINE</b>, strips the bookmaker vig, and calls the <b>steam</b> the moment sharp money reprices an outcome. Then it grades itself on chain.</p>
+      <div class="cta">
+        <button class="btn wht play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Play demo</button>
+        <button class="btn gh" id="toFeed">See the board ↓</button>
+      </div>
+      <div class="tline"><span class="tdot" id="tdot"></span><span id="tsub">connecting to agent…</span><a class="vchip" id="vchip" hidden href="#how">✓ data verified on-chain</a></div>
+      <div class="heroM" id="heroM"></div>
+    </div>
+    <div class="term" id="termWrap">
+      <div class="tbar"><span class="dots"><i></i><i></i><i></i></span>
+        <div class="ttabs"><button data-t="scan" class="on">scan</button><button data-t="calls">calls</button><button data-t="chain">chain</button></div>
+      </div>
+      <div class="tbody" id="term"></div>
+    </div>
+  </section>
+
+  <!-- BOARD -->
+  <section class="sec" id="board">
+    <div class="shead"><span class="ey">// <b>LIVE</b> ODDS BOARD</span><h2 style="margin-left:10px">The board</h2><span class="n" id="bN"></span></div>
+    <div class="stats">
+      <div class="st"><div class="k">Matches</div><div class="v" data-s="matches">·</div></div>
+      <div class="st"><div class="k">Steam now</div><div class="v" data-s="steam_now">·</div></div>
+      <div class="st"><div class="k">Open calls</div><div class="v" data-s="open_calls">·</div></div>
+      <div class="st"><div class="k">CLV rate</div><div class="v" id="hr">·</div></div>
+    </div>
+    <div class="grid" id="boardL"><div class="empty">Waiting for the first agent cycle…</div></div>
+  </section>
+
+  </div><!-- /view-board -->
+
+  <div class="view" id="view-calls">
+  <!-- CALLS -->
+  <section class="sec" id="calls">
+    <div class="shead"><span class="ey">// THE CALLS</span><h2 style="margin-left:10px">Positions</h2><span class="n" id="oN"></span></div>
+    <div class="grid callsGrid" id="openL"><div class="empty">No steam calls right now.</div></div>
+    <div class="shead" style="margin-top:26px"><span class="ey">// AGENT ACTIVITY</span><h2 style="margin-left:10px;font-size:19px">Live log</h2></div>
+    <div class="feed" id="feed"><div class="empty">Waiting for the agent…</div></div>
+  </section>
+
+  </div><!-- /view-calls -->
+
+  <div class="view" id="view-track">
+  <!-- TRACK -->
+  <section class="sec" id="track">
+    <div class="shead"><span class="ey">// TRACK RECORD</span><h2 style="margin-left:10px">The book</h2><span class="n" id="sN"></span></div>
+    <div class="pnlHero">
+      <div class="pnlNum">
+        <div class="pnlBig" id="pnlBig">·</div>
+        <div class="pnlLab">paper P&amp;L · <b id="pnlBank">·</b>u bankroll from 100u start</div>
+        <div class="pnlMeta"><b id="pnlRoi">·</b> ROI · <b id="pnlRec">·</b> record · agent-traded, self-settled on result</div>
+      </div>
+      <div class="pnlChart" id="pnlChart"></div>
+    </div>
+    <div class="trkTiles">
+      <div class="tile"><div class="tv" id="tkHit">·</div><div class="tl">result hit rate</div></div>
+      <div class="tile"><div class="tv" id="tkBeat">·</div><div class="tl">beat the close</div></div>
+      <div class="tile"><div class="tv" id="tkClv">·</div><div class="tl">avg open CLV</div></div>
+      <div class="tile"><div class="tv" id="tkSet">·</div><div class="tl">calls settled</div></div>
+    </div>
+    <div class="grid callsGrid" id="setL"><div class="empty">Grading begins as calls settle at full-time.</div></div>
+  </section>
+
+  </div><!-- /view-track -->
+
+  <div class="view" id="view-how">
+  <!-- HOW -->
+  <section class="sec" id="how">
+    <div class="shead"><span class="ey">// HOW IT WORKS</span><h2 style="margin-left:10px">The method</h2></div>
+    <div class="steps">
+      <div class="step"><div class="num">01 · DE-VIG</div><h3>Honest probabilities</h3><p>Raw odds carry the book's margin. Sharp normalises the three outcomes to sum to one and surfaces the overround, so it reasons about true probability, not a padded price.</p></div>
+      <div class="step"><div class="num">02 · STEAM</div><h3>Sharp, not chop</h3><p>A call needs directional purity and signal-to-noise, consecutive same-direction moves with low variance, not just a big jump. That separates sharp money from noise.</p></div>
+      <div class="step"><div class="num">03 · TRADE</div><h3>It takes a position</h3><p>On a confirmed steam the agent opens a paper position, sized by conviction against a 100-unit bankroll, then settles it on the real full-time result. Its P&amp;L, ROI and win-loss are the track record.</p></div>
+      <div class="step"><div class="num">04 · PROVE</div><h3>Verifiable on chain</h3><p>Each call and each graded result is written to Solana as a tamper-evident memo, and the source odds are proven canonical with a live TxLINE Merkle proof against the on-chain daily root.</p></div>
+    </div>
+    <div style="margin-top:16px">
+      <span class="pill">TxLINE consensus odds</span><span class="pill">De-vig signal engine</span><span class="pill">Conviction-sized paper book</span><span class="pill">Cross-market confirmation</span><span class="pill">Self-settled on result</span><span class="pill">Commit-reveal on Solana</span><span class="pill">On-chain Merkle provenance</span><span class="pill">Autonomous 60s loop</span>
+    </div>
+    <div class="modelCard">
+      <h3>The signal model · how conviction is scored</h3>
+      <div class="mrow"><span class="mn">Direction · size and sign of the repricing</span><span class="mbar"><i style="width:34%"></i></span><span class="mw">0.34</span></div>
+      <div class="mrow"><span class="mn">Velocity · how fast the line is moving now</span><span class="mbar"><i style="width:22%"></i></span><span class="mw">0.22</span></div>
+      <div class="mrow"><span class="mn">Steam · directional purity, not chop</span><span class="mbar"><i style="width:20%"></i></span><span class="mw">0.20</span></div>
+      <div class="mrow"><span class="mn">Magnitude · move vs its own noise floor</span><span class="mbar"><i style="width:14%"></i></span><span class="mw">0.14</span></div>
+      <div class="mrow"><span class="mn">Signal / noise · sustained drift vs variance</span><span class="mbar"><i style="width:10%"></i></span><span class="mw">0.10</span></div>
+      <p style="color:var(--faint);font-size:12px;margin:12px 0 0;line-height:1.6">STEAM opens a call at conviction ≥ 66 with directional purity ≥ 0.5. Stake scales with conviction (0.5u to 3u on a 100u book). A call is also cross-checked against the Asian-handicap line. Every open call is graded on closing-line value each cycle and settled on the real full-time result.</p>
+    </div>
+    <div class="modelCard" style="text-align:center">
+      <h3 style="text-align:left">Verify it yourself · trustless, on devnet</h3>
+      <p style="color:var(--mut);font-size:13px;margin:0 0 14px;text-align:left">Run the sponsor's own <b class="mono">txoracle.validate_odds</b> against the on-chain daily Merkle root, right now, from your browser.</p>
+      <div style="text-align:left"><button class="btn wht sm" onclick="sharpVerify('vresHow')">Verify source odds on-chain now</button><div id="vresHow" class="vres"></div></div>
+    </div>
+    <div class="foot"><span class="pr" style="color:var(--grn)">&gt;_</span> Sharp · consensus odds on TxLINE, anchored on Solana.<br>
+      <a href="https://github.com/txodds/tx-on-chain" target="_blank" rel="noopener">TxLINE docs</a> · TxODDS × Solana World Cup Hackathon<br>
+      <span id="upd"></span></div>
+  </section>
+  </div><!-- /view-how -->
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet"><div class="grab"></div><button class="sclose" id="sClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button><div id="sBody"></div></div>
+
+<div class="tour" id="tour"><div class="spot" id="spot"></div>
+  <div class="tcard" id="tcard"><div class="ec" id="tec"></div><h4 id="tt"></h4><p id="tb"></p>
+    <div class="tpr" id="tprg"></div>
+    <div class="tctl"><button class="tb gh" id="tX">Exit</button><div class="nv"><button class="tb" id="tP">Back</button><button class="tb pri" id="tN">Next</button></div></div>
+  </div>
+</div>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const pct=n=>n==null?'·':Math.round(n*100)+'%';
+const vig=m=>m&&m.overround_pct!=null?Math.max(0,m.overround_pct):'·';
+const ago=iso=>{if(!iso)return'';let s=Math.max(0,(Date.now()-new Date(iso))/1000);return s<60?Math.floor(s)+'s':s<3600?Math.floor(s/60)+'m':Math.floor(s/3600)+'h';};
+const S={board:null,calls:[],events:[],tab:'scan'};
+
+function spark(arr,w,h,color){const v=(arr||[]).filter(x=>x!=null);if(v.length<2)return`<svg class="spk" viewBox="0 0 ${w} ${h}"></svg>`;
+  const lo=Math.min(...v),hi=Math.max(...v),rg=(hi-lo)||1e-6,n=v.length,X=i=>i/(n-1)*(w-4)+2,Y=x=>h-3-((x-lo)/rg)*(h-6);
+  const pts=v.map((x,i)=>`${X(i).toFixed(1)},${Y(x).toFixed(1)}`),up=v[n-1]>=v[0],c=up?color:'#ff6b6b',id='g'+Math.random().toString(36).slice(2,7);
+  return`<svg class="spk" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c}" stop-opacity=".3"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></linearGradient></defs><path d="M2,${h-3} L${pts.join(' L')} L${w-2},${h-3} Z" fill="url(#${id})"/><polyline points="${pts.join(' ')}" fill="none" stroke="${c}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${X(n-1).toFixed(1)}" cy="${Y(v[n-1]).toFixed(1)}" r="2.1" fill="${c}"/></svg>`;}
+function areaChart(vals){const w=680,h=128,pad=8;let v=(vals||[]).filter(x=>x!=null);if(v.length<2)v=[100,100];
+  const base=v[0],lo=Math.min(base,...v),hi=Math.max(base,...v),rg=(hi-lo)||1,n=v.length;
+  const X=i=>pad+i/(n-1)*(w-2*pad),Y=x=>h-pad-((x-lo)/rg)*(h-2*pad);
+  const end=v[n-1],up=end>=base,c=up?'#6ef7a0':'#ff5c5c',bY=Y(base).toFixed(1);
+  const pts=v.map((x,i)=>`${X(i).toFixed(1)},${Y(x).toFixed(1)}`).join(' ');
+  return`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:128px;display:block"><defs><linearGradient id="pgrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c}" stop-opacity=".26"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></linearGradient></defs>
+    <line x1="${pad}" x2="${w-pad}" y1="${bY}" y2="${bY}" stroke="rgba(255,255,255,.14)" stroke-dasharray="3 4"/>
+    <polygon points="${pad},${h-pad} ${pts} ${w-pad},${h-pad}" fill="url(#pgrad)"/>
+    <polyline points="${pts}" fill="none" stroke="${c}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${X(n-1).toFixed(1)}" cy="${Y(end).toFixed(1)}" r="3.4" fill="${c}"/></svg>`;}
+function ringSvg(p){const r=48,c=2*Math.PI*r,off=c*(1-(p||0)/100);
+  return`<defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6ef7a0"/><stop offset="1" stop-color="#46d6e6"/></linearGradient></defs><circle cx="60" cy="60" r="${r}" fill="none" stroke="#17171b" stroke-width="10"/><circle cx="60" cy="60" r="${r}" fill="none" stroke="url(#rg)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 60 60)" style="transition:stroke-dashoffset .9s var(--ease)"/>`;}
+function countTo(el,val){const cur=parseFloat(el.dataset.n||'0');if(cur===val){el.textContent=val;return;}el.dataset.n=val;const t0=performance.now();const f=t=>{const k=Math.min(1,(t-t0)/600),e=1-Math.pow(1-k,3);el.textContent=Math.round(cur+(val-cur)*e);if(k<1)requestAnimationFrame(f);};requestAnimationFrame(f);}
+
+/* live console */
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function consoleLines(tab){
+  const b=S.board,s=(b&&b.summary)||{},fx=(b&&b.fixtures)||[];
+  const calls=S.calls,open=calls.filter(c=>c.status==='open'),anchored=calls.find(c=>c.anchor&&c.anchor.sig);
+  const L=[];const P='<span class="c-pr">sharp@txline</span> <span class="c-fl">$</span> ';
+  if(tab==='scan'){
+    L.push(P+'<span class="c-wt">scan --worldcup --live</span>');
+    L.push('<span class="c-ar">→</span> sampling <span class="c-cy">'+(s.matches||0)+'</span> fixtures · TxLINE consensus');
+    L.push('<span class="c-ar">→</span> de-vig · stripping book margin');
+    const top=[...fx].sort((a,c)=>(c.score||0)-(a.score||0)).slice(0,3);
+    top.forEach(f=>{const st=f.verdict==='STEAM';
+      L.push((st?'<span class="c-st">● STEAM</span>':'<span class="c-fl">○ '+ (f.verdict||'WATCH')+'</span>')+'  '+esc(f.name)+' <span class="c-ar">→</span> <span class="'+(st?'c-ok':'c-cy')+'">'+(f.side||'·')+'</span>');
+      L.push('  <span class="c-fl">conviction</span> <span class="c-cy">'+Math.round(f.score||0)+'</span> <span class="c-fl">· steam</span> <span class="c-cy">'+((f.stats&&f.stats.steam)??'·')+'</span>');});
+    L.push('<span class="c-ok">✓</span> <span class="c-fl">'+(s.steam_now||0)+' steam · '+(s.open_calls||0)+' open · CLV '+(s.clv_hit_rate==null?'n/a':s.clv_hit_rate+'%')+'</span>');
+    const ag=s.agent;if(ag)L.push('<span class="c-fl">agent '+(ag.mode||'live')+' · '+(ag.cycles||0)+' cycles · scans every '+(ag.poll_s||60)+'s · autonomous</span>');
+  }else if(tab==='calls'){
+    L.push(P+'<span class="c-wt">calls --open</span>');
+    if(!open.length)L.push('<span class="c-fl">no open positions · waiting for steam</span>');
+    open.slice(0,4).forEach(c=>{const cl=c.clv_pp;
+      L.push('<span class="c-st">●</span> '+esc(c.name)+' <span class="c-ar">→</span> <span class="c-ok">'+c.side+'</span> <span class="c-fl">@'+Math.round(c.score||0)+'</span>');
+      L.push('  <span class="c-fl">CLV</span> <span class="'+(cl>=0?'c-ok':'c-neg')+'">'+(cl>0?'+':'')+(cl??'·')+'pp</span> <span class="c-fl">· '+(c.grade||'grading')+'</span>');});
+  }else{
+    L.push(P+'<span class="c-wt">chain --anchors</span>');
+    L.push('<span class="c-ar">→</span> network <span class="c-cy">solana devnet</span> · memo program');
+    if(anchored){L.push('<span class="c-ok">✓</span> '+esc(anchored.name)+' <span class="c-ar">→</span> <span class="c-ok">'+anchored.side+'</span>');
+      L.push('  <span class="c-cy">◎ '+anchored.anchor.sig.slice(0,8)+'…'+anchored.anchor.sig.slice(-6)+'</span>');}
+    else{L.push('<span class="c-fl">anchoring activates on the live devnet feed</span>');L.push('<span class="c-fl">each STEAM call → 1 tamper-evident memo tx</span>');}
+    L.push('<span class="c-ok">✓</span> <span class="c-fl">'+(S.calls.filter(c=>c.status==='settled').length)+' calls settled · self-graded on CLV</span>');
+    const pv=S.board&&S.board.summary&&S.board.summary.provenance;
+    if(pv&&pv.verified){L.push('<span class="c-ok">✓</span> <span class="c-fl">source odds verified on-chain · txoracle.validate_odds'+(pv.method?' ('+pv.method+')':'')+'</span>');
+      L.push('  <span class="c-fl">'+(pv.proof_depth||0)+'-node Merkle proof vs daily root</span> <span class="c-cy">'+esc((pv.pda||'').slice(0,10))+'…</span>');}
+  }
+  return L;
+}
+function renderConsole(){const el=$('#term');if(!el)return;const lines=consoleLines(S.tab);
+  el.innerHTML=lines.map((h,i)=>`<div class="ln rv" style="animation-delay:${i*70}ms">${h}</div>`).join('')+`<div class="ln"><span class="c-pr">sharp@txline</span> <span class="c-fl">$</span> <span class="c-cur"></span></div>`;}
+$$('.ttabs button').forEach(t=>t.onclick=()=>{S.tab=t.dataset.t;$$('.ttabs button').forEach(x=>x.classList.toggle('on',x===t));renderConsole();});
+
+/* cards */
+function stateBadge(f){if(f.state==='live')return`<span class="live"><i></i>LIVE${f.matchScore?' '+esc(f.matchScore):''}</span>`;
+  if(f.state==='final')return`<span class="ft">FT${f.matchScore?' '+esc(f.matchScore):''}</span>`;return'';}
+function fxCard(f){const im=(f.market&&f.market.implied)||{},h=im.home||0,d=im.draw||0,a=im.away||0,sm=(h+d+a)||1;
+  const w=x=>Math.max(3,x/sm*100),v=f.verdict||'WATCH',sc=Math.round(f.score||50),steam=v==='STEAM';
+  const el=document.createElement('div');el.className='fx'+(steam?' steam':'');
+  el.innerHTML=`<div class="fxh"><span class="nm">${f.name||f.fixtureId}</span>${stateBadge(f)}<span class="chip ${v}">${v}</span></div>
+    <div class="fxb"><div class="conv ${steam?'hi':''}"><b>${sc}</b><span>conviction</span></div>${spark(f.spark,96,34,steam?'#6ef7a0':'#46d6e6')}${f.side?`<div class="lean">→ <b>${f.side}</b></div>`:''}</div>
+    <div class="mkt"><i class="h" style="flex-basis:${w(h)}%"></i><i class="d" style="flex-basis:${w(d)}%"></i><i class="a" style="flex-basis:${w(a)}%"></i></div>
+    <div class="mktl"><span>H <b>${pct(h)}</b></span><span>D <b>${pct(d)}</b></span><span>A <b>${pct(a)}</b></span><span class="ov">vig ${vig(f.market)}%</span></div>`;
+  el.onclick=()=>openFx(f);return el;}
+function callCard(c,st){const clv=typeof c.clv_pp==='number'?c.clv_pp:null,r=st?(c.result_clv_pp??clv):clv;
+  const cls=r==null?'flat':r>=0.3?'pos':r<=-0.3?'neg':'flat',txt=r==null?'grading':(r>0?'+':'')+r+'pp';
+  const el=document.createElement('div');el.className='call'+(st?(c.win?' win':' loss'):'');
+  const slabel=st?(c.winner?(c.win?'WON':'LOST'):(c.win?'BEAT CLOSE':'FADED')):'STEAM';
+  const schip=st?(c.win?'LEAN':'DRIFT'):'STEAM';
+  const pnlTag=st&&typeof c.pnl==='number'?`<span class="clv ${c.pnl>=0?'pos':'neg'}">${c.pnl>=0?'+':''}${c.pnl}u</span>`:'';
+  const cc=c.cross_confirmed?'<span class="cc" title="Asian-handicap market agrees with the 1X2 steam">✓ 2-mkt</span>':'';
+  el.innerHTML=`<div class="ch"><span class="chip ${schip}">${slabel}</span><span class="nm">${c.name}</span>${cc}<span class="ag">${ago(st?c.settled_at:c.opened_at)} ago</span></div>
+    ${st?'':`<div class="why">${c.rationale||''}</div>`}
+    <div class="cf">${pnlTag||`<span class="clv ${cls}">${txt} CLV</span>`}<span class="mta">${c.side}${c.final_score?' · <b>'+esc(c.final_score)+'</b>':''}${st&&c.stake?' · '+c.stake+'u':''} · conv <b>${Math.round(c.score||0)}</b></span>${ancLink(c)}</div>`;
+  el.onclick=()=>openCall(c,st);return el;}
+function ancLink(c){const a=c.anchor;if(!a||!a.sig)return'';const nt=a.cluster&&a.cluster!=='mainnet'?'?cluster='+a.cluster:'';
+  return`<a class="anc" href="https://explorer.solana.com/tx/${a.sig}${nt}" target="_blank" rel="noopener" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2"/><path d="M12 7v12M6 12H5c0 4 3 6 7 6s7-2 7-6h-1"/></svg>${a.sig.slice(0,4)}…${a.sig.slice(-4)}</a>`;}
+function fillList(el,items,make,empty){el.innerHTML='';if(!items.length){el.innerHTML=empty;return;}items.forEach((it,i)=>{const c=make(it);c.classList.add('rv');c.style.animationDelay=(i*40)+'ms';el.appendChild(c);});}
+
+function render(){const b=S.board;
+  if(b){const s=b.summary||{};
+    $$('[data-s]').forEach(el=>{const v=s[el.getAttribute('data-s')];if(v==null)el.textContent='·';else countTo(el,v);});
+    $('#hr').innerHTML=s.clv_hit_rate==null?'<small>n/a</small>':s.clv_hit_rate+'<small>%</small>';
+    $('#tdot').className='tdot'+(b.mock?' mock':'');
+    $('#tsub').textContent=(b.mock?'demo feed · synthetic steam · ':'live · TxLINE devnet · ')+'updated '+ago(b.updated_at)+' ago';
+    const pv=s.provenance;$('#vchip').hidden=!(pv&&pv.verified);
+    if(pv&&pv.verified)$('#vchip').title='Verified on-chain via txoracle.validate_odds'+(pv.method?' ('+pv.method+')':'')+' · '+(pv.proof_depth||0)+'-node Merkle proof vs daily root '+(pv.pda||'');
+    $('#upd').textContent='board updated '+ago(b.updated_at)+' ago';
+    const fx=b.fixtures||[];$('#bN').textContent=fx.length?fx.length+' fixtures':'';
+    fillList($('#boardL'),fx,fxCard,'<div class="empty">No fixtures in this window.</div>');
+    const pnl=s.pnl_u??0,up=pnl>=0;const pb=$('#pnlBig');
+    pb.innerHTML=(up?'+':'')+pnl+'<small>u</small>';pb.style.color=up?'var(--grn)':'var(--neg)';
+    $('#pnlBank').textContent=s.bankroll??100;
+    $('#pnlRoi').textContent=(s.roi_pct>0?'+':'')+(s.roi_pct??0)+'%';
+    $('#pnlRec').textContent=s.record||'0-0';
+    $('#pnlChart').innerHTML=areaChart(s.bankroll_curve||[100]);
+    $('#tkHit').innerHTML=s.clv_hit_rate==null?'<small>n/a</small>':s.clv_hit_rate+'<small>%</small>';
+    $('#tkBeat').innerHTML=s.beat_close_pct==null?'<small>n/a</small>':s.beat_close_pct+'<small>%</small>';
+    $('#tkClv').textContent=((s.avg_clv_pp>0?'+':'')+(s.avg_clv_pp??0))+'pp';
+    $('#tkSet').textContent=s.settled||0;
+  }
+  const open=S.calls.filter(c=>c.status==='open'),set=S.calls.filter(c=>c.status==='settled');
+  $('#oN').textContent=open.length?open.length+' live':'';$('#sN').textContent=set.length?set.length+' graded':'';
+  fillList($('#openL'),open,c=>callCard(c,false),'<div class="empty">No steam calls right now.</div>');
+  fillList($('#setL'),set.slice(0,20),c=>callCard(c,true),'<div class="empty">Grading begins as calls mature.</div>');
+  renderConsole();renderFeed();renderHeroM();
+}
+function renderFeed(){const el=$('#feed');if(!el)return;const ev=S.events||[];
+  if(!ev.length){el.innerHTML='<div class="empty">Waiting for the agent…</div>';return;}
+  el.innerHTML=ev.slice(0,18).map(e=>`<div class="fi"><span class="ft2">${ago(e.ts)} ago</span><span class="fk ${esc(e.type||'scan')}">${esc(e.type||'')}</span><span class="fm">${esc(e.msg||'')}</span></div>`).join('');}
+function renderHeroM(){const el=$('#heroM');if(!el)return;const s=(S.board&&S.board.summary)||{};const set=S.calls.filter(c=>c.status==='settled');
+  const pnl=s.pnl_u??0;const bits=[];
+  bits.push(`<span><b>${S.calls.length}</b> calls</span>`);
+  if(s.clv_hit_rate!=null)bits.push(`<span><b class="g">${s.clv_hit_rate}%</b> hit rate</span>`);
+  if(set.length)bits.push(`<span class="g"><b>${pnl>=0?'+':''}${pnl}u</b> P&amp;L</span>`);
+  if(s.provenance&&s.provenance.onchain)bits.push('<span class="g">✓ on-chain verified</span>');
+  el.innerHTML=bits.join('');}
+
+/* modal */
+function openSheet(h){$('#sBody').innerHTML=h;$('#scrim').classList.add('on');$('#sheet').classList.add('on');}
+function closeSheet(){$('#scrim').classList.remove('on');$('#sheet').classList.remove('on');}
+$('#scrim').onclick=closeSheet;$('#sClose').onclick=closeSheet;addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet();});
+function facRow(n,v){return`<div class="fac"><div class="fl"><span class="fn">${n}</span><b>${Math.round(v)}</b></div><div class="bar"><i style="width:${Math.max(3,Math.min(100,v))}%"></i></div></div>`;}
+function openFx(f){const fc=f.factors||{},st=f.stats||{},mk=f.market||{},im=mk.implied||{};
+  const nm={direction:'Direction',velocity:'Velocity',steam:'Steam · purity',magnitude:'Magnitude',conviction_snr:'Signal / noise'};
+  openSheet(`<h3>${f.name}</h3><div class="ssub">${f.verdict} · leaning <span style="color:var(--grn)">${f.side||'·'}</span> · conviction ${Math.round(f.score||0)}/100</div>
+    <div class="shSpk">${spark(f.spark,320,74,f.verdict==='STEAM'?'#6ef7a0':'#46d6e6').replace('class="spk"','style="width:100%;height:74px"')}</div>
+    <div class="lbl" style="margin:8px 0">Signal factors</div>${Object.keys(nm).map(k=>fc[k]!=null?facRow(nm[k],fc[k]):'').join('')}
+    <div style="margin-top:14px">
+      <div class="kv"><span class="k">De-vig implied</span><span class="v">${pct(im.home)} / ${pct(im.draw)} / ${pct(im.away)}</span></div>
+      <div class="kv"><span class="k">Overround</span><span class="v">${vig(mk)}%</span></div>
+      <div class="kv"><span class="k">Move since open</span><span class="v">${st.move_pct!=null?(st.move_pct>0?'+':'')+st.move_pct+'pp':'·'}</span></div>
+      <div class="kv"><span class="k">Velocity</span><span class="v">${st.velocity_bp!=null?st.velocity_bp+' bp':'·'}</span></div>
+    </div>`);}
+function openCall(c,st){const r=st?(c.result_clv_pp??c.clv_pp):c.clv_pp;
+  openSheet(`<h3>${c.name}</h3><div class="ssub">STEAM · ${c.side} · opened ${ago(c.opened_at)} ago${st?' · settled':''}</div>
+    <div class="step" style="padding:14px;margin-bottom:14px"><p style="font-family:var(--mono);font-size:12.5px;line-height:1.6;color:var(--mut)">${c.rationale||''}</p></div>
+    <div class="kv"><span class="k">Conviction</span><span class="v">${Math.round(c.score||0)}/100</span></div>
+    ${c.bet?`<div class="kv"><span class="k">Position</span><span class="v">${c.bet.stake}u @ ${c.bet.price} on ${c.side}</span></div>`:''}
+    ${st&&typeof c.pnl==='number'?`<div class="kv"><span class="k">Result P&L</span><span class="v" style="color:${c.pnl>=0?'var(--grn)':'var(--neg)'}">${c.pnl>=0?'+':''}${c.pnl}u${c.final_score?' · '+esc(c.final_score):''}</span></div>`:''}
+    <div class="kv"><span class="k">Implied at call</span><span class="v">${c.implied_at_call!=null?pct(c.implied_at_call):'·'}</span></div>
+    <div class="kv"><span class="k">Implied now</span><span class="v">${c.implied_now!=null?pct(c.implied_now):'·'}</span></div>
+    ${c.close_implied!=null?`<div class="kv"><span class="k">Closing line · asOf kickoff</span><span class="v">${pct(c.close_implied)}</span></div>`:''}
+    <div class="kv"><span class="k">Closing-line value${c.clv_exact?' · exact':''}</span><span class="v" style="color:${r>0?'var(--grn)':r<0?'var(--neg)':'var(--mut)'}">${r==null?'grading':(r>0?'+':'')+r+'pp'}</span></div>
+    ${c.commit?`<div class="kv"><span class="k">Decision commitment</span><span class="v" style="font-family:var(--mono);font-size:11px" title="SHA-256 of the decision, committed on-chain before kickoff">${c.commit.slice(0,10)}…${c.commit.slice(-6)}</span></div>`:''}
+    <div class="kv"><span class="k">On-chain record</span><span class="v">${c.anchor&&c.anchor.sig?ancLink(c):'<span style="color:var(--faint)">live only</span>'}</span></div>
+    <div style="margin-top:13px"><button class="btn gh sm" onclick="sharpVerify('vresModal')">Verify source odds on-chain now</button><div id="vresModal" class="vres"></div></div>`);}
+
+/* interactive trustless verification: call txoracle.validate_odds live on devnet */
+async function sharpVerify(elId,fixture){const el=document.getElementById(elId);if(!el)return;
+  el.innerHTML='<span class="vspin"></span> calling <b class="mono">txoracle.validate_odds</b> on devnet…';
+  try{const r=await fetch('/api/verify'+(fixture?'?fixture='+encodeURIComponent(fixture):'')).then(x=>x.json());
+    if(r&&r.verified)el.innerHTML='<span style="color:var(--grn)">✓ verified on-chain</span> · '+esc(r.market||'odds')+' · '+(r.proof_nodes||0)+'-node Merkle proof · '+(r.method||'view')+(r.predicate!=null?' · predicate '+r.predicate:'')+' · '+(r.took_ms||0)+'ms<br><span class="faint">daily-root pda '+esc((r.pda||'').slice(0,18))+'… · program '+esc((r.program||'').slice(0,10))+'…</span>';
+    else el.innerHTML='<span style="color:var(--neg)">verification unavailable</span> · '+esc((r&&r.error)||'no data');
+  }catch(e){el.innerHTML='<span style="color:var(--neg)">verify failed</span> · '+esc(e.message||'');}}
+
+/* data */
+async function tick(){try{const q='?t='+Date.now();
+  const [b,c,e]=await Promise.all([fetch('/data/board.json'+q).then(r=>r.json()).catch(()=>null),fetch('/data/calls.json'+q).then(r=>r.json()).catch(()=>[]),fetch('/data/events.json'+q).then(r=>r.json()).catch(()=>[])]);
+  if(b)S.board=b;S.calls=Array.isArray(c)?c:[];S.events=Array.isArray(e)?e:[];render();
+}catch(e){$('#tsub').textContent='feed error · retrying';}}
+
+/* tour */
+const TOUR=[
+ {view:'board',sel:'.hero .term',ec:'01 · THE AGENT',t:'A live trading agent',b:'This console is the agent thinking in real time: sampling TxLINE odds, de-vigging, and flagging steam. It runs unattended, every 60 seconds.'},
+ {view:'board',sel:'#boardL .fx',ec:'02 · THE BOARD',t:'De-vig, then score the move',b:'Each match is stripped of the book margin, then scored on how hard and how cleanly the line is moving. Green means STEAM: sharp money is here.'},
+ {view:'board',sel:'#sheet',ec:'03 · THE BREAKDOWN',t:'Every call is explainable',b:'Open any match for the full signal: direction, velocity, steam purity, magnitude and signal-to-noise, plus the live probability path.',act:()=>{const f=S.board&&S.board.fixtures&&S.board.fixtures[0];if(f)openFx(f);},clean:closeSheet},
+ {view:'calls',sel:'#openL .call',ec:'04 · THE CALL',t:'It takes a position',b:'When a move clears conviction and directional purity, the agent opens a public, timestamped call with its reasoning attached. No human input.'},
+ {view:'track',sel:'#track .ringc',ec:'05 · THE RECORD',t:'Self-graded, on chain',b:'Calls are anchored on Solana and graded on closing-line value into a public track record. The agent keeps score of itself.'},
+];
+let ti=0;
+function tstep(i){const s=TOUR[i];if(!s)return endTour();
+  if(TOUR[ti]&&TOUR[ti].clean&&TOUR[ti]!==s)try{TOUR[ti].clean();}catch(e){}
+  ti=i;$('#tec').textContent=s.ec;$('#tt').textContent=s.t;$('#tb').textContent=s.b;
+  $('#tP').style.visibility=i?'visible':'hidden';$('#tN').textContent=i===TOUR.length-1?'Finish':'Next';
+  $('#tprg').innerHTML=TOUR.map((_,j)=>`<i class="${j<i?'done':j===i?'cur':''}"></i>`).join('');
+  showView(s.view||'board');window.scrollTo(0,0);
+  if(s.act)setTimeout(()=>{try{s.act();}catch(e){}},300);
+  setTimeout(()=>spot(s.sel),s.act?640:420);
+  clearTimeout(tstep.to);tstep.to=setTimeout(()=>tstep(i+1),6600);}
+function spot(sel){const el=sel.split(',').map(x=>$(x.trim())).find(e=>e&&e.getClientRects().length);
+  const sp=$('#spot'),cd=$('#tcard');
+  if(!el){sp.style.opacity='1';sp.style.width='0';sp.style.height='0';sp.style.left='50%';sp.style.top='-10px';cd.style.top='';cd.style.bottom='22px';return;}
+  el.scrollIntoView({block:'center',behavior:'smooth'});
+  setTimeout(()=>{const r=el.getBoundingClientRect(),p=8;sp.style.opacity='1';sp.style.left=(r.left-p)+'px';sp.style.top=(r.top-p)+'px';sp.style.width=(r.width+p*2)+'px';sp.style.height=(r.height+p*2)+'px';
+    const below=r.bottom+230<innerHeight;cd.style.top=below?(r.bottom+16)+'px':'';cd.style.bottom=below?'':Math.max(16,innerHeight-r.top+16)+'px';},400);}
+function startTour(){ti=0;$('#tour').classList.add('on');closeSheet();tstep(0);}
+function endTour(){clearTimeout(tstep.to);$('#tour').classList.remove('on');if(TOUR[ti]&&TOUR[ti].clean)try{TOUR[ti].clean();}catch(e){}route();}
+$$('.play').forEach(b=>b.onclick=startTour);$('#tX').onclick=endTour;$('#tN').onclick=()=>tstep(ti+1);$('#tP').onclick=()=>tstep(ti-1);
+
+/* view router: each tab is its own page (#board / #calls / #track / #how) */
+const VIEWS=['board','calls','track','how'];
+const TITLES={board:'Sharp · autonomous sharp-money agent',calls:'Calls · Sharp',track:'Track record · Sharp',how:'How it works · Sharp'};
+function curView(){const m=location.hash.match(/^#(\w+)/);const v=m&&m[1];return VIEWS.includes(v)?v:'board';}
+function showView(v){$$('.view').forEach(el=>el.classList.toggle('on',el.id==='view-'+v));
+  $$('.nav a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+v));document.title=TITLES[v]||TITLES.board;}
+function route(){showView(curView());window.scrollTo(0,0);}
+function go(v){if('#'+v!==location.hash)history.pushState(null,'','#'+v);route();}
+$$('.nav a, .brand').forEach(a=>{const h=a.getAttribute('href');if(h&&/^#(board|calls|track|how)$/.test(h))a.onclick=e=>{e.preventDefault();go(h.slice(1));};});
+const bl=$('.brand');if(bl)bl.onclick=e=>{e.preventDefault();go('board');};
+const vc=$('#vchip');if(vc)vc.onclick=e=>{e.preventDefault();go('how');};
+$('#toFeed').onclick=()=>{const t=$('#board');if(t)t.scrollIntoView({behavior:'smooth'});};
+addEventListener('popstate',route);
+route();
+/* honor a deep link on load (#calls etc), guarded against junk in the hash */
+
+tick();setInterval(tick,12000);
+</script>
+</body>
+</html>
