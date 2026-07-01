@@ -49,3 +49,14 @@ node agent.js           # live TxLINE devnet (funded devnet wallet)
 ```
 
 Devnet txoracle program: `6pW64gN1s2uqjHkn1unFeEjAwJkPGHoppGvS715wyP2J`. Built by @smartcoded (SmartCodedBot).
+
+## Security
+
+No secrets are committed (verified across the full git history). The devnet wallet
+(`.devkey.json`), the TxLINE session (`.session.json`), any `.env`, and runtime `data/`
+are gitignored. A secret scan runs automatically:
+
+- CI: `.github/workflows/gitleaks.yml` runs gitleaks on every push and pull request.
+- Local (opt-in): run `git config core.hooksPath .githooks` once. The pre-commit hook then
+  blocks any commit that contains a key, token, or sensitive file (uses gitleaks if installed,
+  otherwise a built-in zero-dependency scan).
